@@ -1,5 +1,7 @@
 # 実装計画と受入条件
 
+進捗（2026-09-18）: 第0節の型整合性検査を導入（`npm run test:types`）。第1節の参照lint CLIを実装（JSON Schema検証、元ファイル位置、coverage、exit 0/1/2）。YAML parser、SARIF/LSPは未着手。第2節以降は未着手。
+
 ## 0. 既にあるものを正本にする
 
 構造制約の正本はschemas/以下。src/contracts.tsは対応するTypeScript表現。現時点では手動対応なので、Schema→TypeScript生成か型整合性テストを本体開発の最初に導入し、二重管理を恒久化しない。

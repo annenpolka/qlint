@@ -1,6 +1,6 @@
 {
   "suiteSchema": "Draft 2020-12",
-  "passed": 15,
+  "passed": 19,
   "failed": 0,
   "tests": [
     {
@@ -17,6 +17,22 @@
     },
     {
       "test": "diagnostic schema validates the explicitly synthetic fixture",
+      "passed": true
+    },
+    {
+      "test": "diagnostic locations accept optional file/line/column",
+      "passed": true
+    },
+    {
+      "test": "non-positive diagnostic line rejected",
+      "passed": true
+    },
+    {
+      "test": "non-positive diagnostic column rejected",
+      "passed": true
+    },
+    {
+      "test": "blank diagnostic file rejected",
       "passed": true
     },
     {

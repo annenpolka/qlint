@@ -1,0 +1,1 @@
+{"model":"jev-1.13.0","answers":{"qsm_qpr_qsu_never_passed":{"type":"noul","noul":0.2},"exit1_exactly_on_errors":{"type":"noul","noul":0.75},"unassigned_rules_default_not_run":{"type":"noul","noul":0.97},"sufficiency_executed_rules_visible":{"type":"noul","noul":0.94}},"usage":{"input_tokens":11616,"output_tokens":97}}

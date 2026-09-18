@@ -1,7 +1,7 @@
 # qlint v0.1 — 自然言語判定関数の契約検査
 
 設計日: 2026-09-18  
-状態: 設計提案 + オフライン参照実装。製品版CLI、Jev adapter、semantic screening、probe、fuzzは未実装。  
+状態: 設計提案 + オフライン参照実装（参照lint CLIを含む）。製品版CLI、Jev adapter、semantic screening、probe、fuzzは未実装。  
 仮称: qlint。公開パッケージ名の確保・既存名称との調査は行っていない。
 
 ## 1. 目的と非目的
@@ -158,7 +158,7 @@ severityとbasisを独立させる。
 
 CIポリシーがmodel_signalをblock扱いにすることは可能だが、basisはmodel_signalのまま。複数モデルが同意してもstatic_proofに昇格させない。
 
-各DiagnosticはruleId、questionId、severity、basis、message、locations、evidenceを持つ。モデルにDiagnostic全体を書かせない。モデルは限定されたscreen signalを返し、rule engineが根拠・severity・codeを組み立てる。
+各DiagnosticはruleId、questionId、severity、basis、message、locations、evidenceを持つ。locationsのpointerは入力文書内を指し、CLIは解決済みのfile/line/column（1始まり、optional）を付けられる。モデルにDiagnostic全体を書かせない。モデルは限定されたscreen signalを返し、rule engineが根拠・severity・codeを組み立てる。
 
 Jevは自由文の説明や証拠spanを生成するためのbackendとして扱わない。必要なら事前にfragment ID付きでspecを分解し、その候補から場所を選ぶ。引用する文字列・JSON Pointerは実在するものだけに限定する。場所が特定できない場合はquestion全体への疑いとして報告し、架空の引用で説得力を補わない。
 
@@ -232,7 +232,9 @@ Assessment.status:
 
 対象suiteのSchema違反は1。検査器自体の設定が壊れている場合は2。優先順位と複数エラーの集約規則はCLI実装時の受入試験に含める。
 
-## 9. CLI案 — このbundleでは未実装
+実装メモ（2026-09-18 参照lint CLI）: `qlint lint`が実行する必須検査はlint phaseの検査（QCT001–QCT009、capability指定時はQBE001/QBE002）とする。それらが完了して違反なしならexit 0。semantic screening等の未実行検査は`coverage`に`not_run`、`notExecuted`に理由として残し、exit 0をsemantic承認として表示しない。lintは`3`を返さない。exit `3`はprofile実行で要求検査が未完了の場合に用いる（未実装）。
+
+## 9. CLI案 — lintのみ参照実装、他は未実装
 
     qlint lint questions.json
     qlint inspect questions.json --checks semantic --out plan.json
@@ -240,6 +242,8 @@ Assessment.status:
     qlint probe questions.json --data cases.jsonl --replay recorded.jsonl
     qlint fuzz generate questions.json --out candidates.jsonl
     qlint diff baseline.run.json candidate.run.json
+
+`qlint lint`のみ参照実装（`dist/cli.js`）。`--format json`、`--capabilities`、coverage表示、exit 0/1/2を持つ。inspect/run/probe/fuzz/diffは提案であり未実装で、YAML入力とSARIF/LSPも次段階。
 
 inspectとrunを分ける。lint/inspectは外部送信しない。runはprovider、送信field、redaction、予算、timeout、retry上限、並列数が確定したplanを明示的に実行する。fuzz generateが外部生成モデルを使う場合も同じplan/許可機構を通す。
 
@@ -271,15 +275,17 @@ Wardenはquestion/profile/backend版を固定して利用し、実行イベン�
 
 実装済み:
 
-- TypeScript契約型、QuestionSuite/DiagnosticのJSON Schema。
+- TypeScript契約型、QuestionSuite/DiagnosticのJSON Schema（生成スクリプト `validation/generate_contract_assets.py` が正本）。
+- Schemaから生成した型と契約型の相互assignability検査（`npm run test:types`）。
 - 33ルールのcatalog。各項目に実装状態を明記。
-- Schemaを通ったsuiteへの静的な参照チェック8ルール。
+- Schemaを通ったsuiteへの静的な参照チェック8ルール。親object selector内の別stage登録fieldも検査する。
 - backend capabilityが渡された場合の型・個数チェック2ルール。
-- synthetic fixtures、静的チェック23件、Schema検証15件。
+- 参照lint CLI: Schema検証（QCT001）、pointerからfile:line:columnへの解決、coverage表示、exit code。参照チェックはSchema検証を通過した入力にだけ実行する。
+- synthetic fixtures、テスト47件、Schema検証19件（`validation/`）。
 
 未実装:
 
-- 製品版CLI、YAML parser、実際のstate projectionと時刻検証。
+- 製品版CLI（profile実行、inspect/run/probe/fuzz/diff、YAML parser、SARIF/LSP）、実際のstate projectionと時刻検証。
 - Jev/他backendへの通信、response normalization、semantic screening。
 - gate runtime、population probe、fuzz generator、baseline diff、calibration。
 - 任意のprivate repositoryへの配置、commit、外部サービスでの作成・公開。

@@ -96,13 +96,25 @@ export type Evidence =
       transformReview: "human_reviewed" | "unreviewed";
     }
   | { kind: "metric"; name: string; value: number; sampleSize: number; unit: string };
+/**
+ * A reported location. `pointer` always refers to the input document.
+ * CLI tools add `file`/`line`/`column` after resolving the pointer against
+ * the original text; `line` and `column` are 1-based. Library callers that
+ * never see source text leave them absent.
+ */
+export interface DiagnosticLocation {
+  pointer: string;
+  file?: string;
+  line?: number;
+  column?: number;
+}
 export interface Diagnostic {
   ruleId: string;
   questionId?: Id;
   severity: Severity;
   basis: DiagnosticBasis;
   message: string;
-  locations: { pointer: string }[];
+  locations: DiagnosticLocation[];
   evidence: Evidence[];
 }
 export interface CheckCoverage {

@@ -39,6 +39,19 @@
             "type": "string",
             "minLength": 1,
             "pattern": "\\S"
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [

@@ -79,34 +79,23 @@ export function lintValidatedSuite(suite, capabilities) {
         }
         return false;
     };
-    const fieldClosure = (roots) => {
-        const visited = new Set();
-        const pending = [...roots];
-        while (pending.length) {
-            const id = pending.pop();
-            if (visited.has(id))
-                continue;
-            visited.add(id);
-            pending.push(...(fields.get(id)?.derivedFrom ?? []));
-        }
-        return visited;
-    };
     const targetFields = [...fields.values()].filter(f => f.role === "target");
     const containsPointer = (ancestor, child) => ancestor === child || child.startsWith(ancestor + "/");
     suite.questions.forEach((question, index) => {
         const pointer = `/questions/${index}`;
         if (!bindings.has(question.id))
             emit("QCT008", "Question has no execution binding.", pointer, question.id);
-        const refs = [...question.inputs, ...question.policyRefs];
-        for (const ref of refs) {
+        question.inputs.forEach((ref, refIndex) => {
             if (!fields.has(ref))
-                emit("QCT002", `Unknown input field: ${ref}`, pointer, question.id);
-        }
-        for (const ref of question.policyRefs) {
-            if (fields.has(ref) && fields.get(ref).role !== "policy") {
-                emit("QCT009", `policyRefs points to a non-policy field: ${ref}`, `${pointer}/policyRefs`, question.id);
-            }
-        }
+                emit("QCT002", `Unknown input field: ${ref}`, `${pointer}/inputs/${refIndex}`, question.id);
+        });
+        question.policyRefs.forEach((ref, refIndex) => {
+            const refPointer = `${pointer}/policyRefs/${refIndex}`;
+            if (!fields.has(ref))
+                emit("QCT002", `Unknown policy field: ${ref}`, refPointer, question.id);
+            else if (fields.get(ref).role !== "policy")
+                emit("QCT009", `policyRefs points to a non-policy field: ${ref}`, refPointer, question.id);
+        });
         if (question.prediction) {
             const target = fields.get(question.prediction.targetRef);
             if (!target)
@@ -114,18 +103,45 @@ export function lintValidatedSuite(suite, capabilities) {
             else if (target.role !== "target")
                 emit("QCT009", "Prediction target must have role=target.", `${pointer}/prediction`, question.id);
         }
-        const closure = fieldClosure(refs);
+        // Walk inputs and derived fields, keeping the listed reference each
+        // dependency entered through, so diagnostics point at that array item.
+        const origins = new Map();
+        const pending = [
+            ...question.inputs.map((ref, refIndex) => ({ id: ref, origin: `${pointer}/inputs/${refIndex}` })),
+            ...question.policyRefs.map((ref, refIndex) => ({ id: ref, origin: `${pointer}/policyRefs/${refIndex}` })),
+        ];
+        while (pending.length) {
+            const { id, origin } = pending.pop();
+            if (origins.has(id))
+                continue;
+            origins.set(id, origin);
+            for (const parent of fields.get(id)?.derivedFrom ?? [])
+                pending.push({ id: parent, origin });
+        }
         const binding = bindings.get(question.id);
-        for (const ref of closure) {
+        for (const [ref, origin] of origins) {
             const field = fields.get(ref);
             if (!field)
                 continue;
             if (targetFields.some(target => containsPointer(field.pointer, target.pointer) || containsPointer(target.pointer, field.pointer))) {
-                emit("QCT005", `Input or dependency exposes an evaluation target: ${ref}`, pointer, question.id);
+                emit("QCT005", `Input or dependency exposes an evaluation target: ${ref}`, origin, question.id);
             }
             if (binding && stages.has(binding.atStage) && stages.has(field.availableFrom)
                 && !reachable(field.availableFrom, binding.atStage)) {
-                emit("QCT004", `Field ${ref} is not guaranteed available at ${binding.atStage}; declared at ${field.availableFrom}.`, pointer, question.id);
+                emit("QCT004", `Field ${ref} is not guaranteed available at ${binding.atStage}; declared at ${field.availableFrom}.`, origin, question.id);
+            }
+            // A selected parent object can carry registered child fields whose own
+            // declared availability is later than the parent's. Targets are excluded
+            // here because QCT005 reports their exposure.
+            for (const nested of fields.values()) {
+                if (nested.role === "target" || nested.id === field.id || field.pointer === nested.pointer)
+                    continue;
+                if (!containsPointer(field.pointer, nested.pointer))
+                    continue;
+                if (binding && stages.has(binding.atStage) && stages.has(nested.availableFrom)
+                    && !reachable(nested.availableFrom, binding.atStage)) {
+                    emit("QCT004", `Selector ${field.pointer} contains declared field ${nested.pointer}, which is not guaranteed available at ${binding.atStage}; declared at ${nested.availableFrom}.`, origin, question.id);
+                }
             }
         }
         const out = question.output;

@@ -51,7 +51,8 @@ evidence={'oneOf':[
     obj({'kind':{'const':'paired_case'},'beforeCaseId':TXT,'afterCaseId':TXT,'transformId':TXT,'transformReview':enum('human_reviewed','unreviewed')}),
     obj({'kind':{'const':'metric'},'name':TXT,'value':{'type':'number'},'sampleSize':{'type':'integer','minimum':1},'unit':TXT})
 ]}
-diag=obj({'ruleId':{'type':'string','pattern':'^Q(?:CT|SM|BE|PR|SU)[0-9]{3}$'},'questionId':ID,'severity':enum('error','warning','info'),'basis':enum('static_proof','model_signal','empirical_witness'),'message':TXT,'locations':arr(obj({'pointer':TXT}),1),'evidence':arr(evidence,1)},('questionId',))
+location=obj({'pointer':TXT,'file':TXT,'line':{'type':'integer','minimum':1},'column':{'type':'integer','minimum':1}},('file','line','column'))
+diag=obj({'ruleId':{'type':'string','pattern':'^Q(?:CT|SM|BE|PR|SU)[0-9]{3}$'},'questionId':ID,'severity':enum('error','warning','info'),'basis':enum('static_proof','model_signal','empirical_witness'),'message':TXT,'locations':arr(location,1),'evidence':arr(evidence,1)},('questionId',))
 dump('schemas/diagnostic.schema.json',{'$schema':'https://json-schema.org/draft/2020-12/schema','title':'qlint Diagnostic v0.1',**diag})
 
 def f(id,pointer,stage='start',role='evidence',typ='string',derived=()):

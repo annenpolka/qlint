@@ -53,6 +53,23 @@ test('an unsupported output kind is a capability error', () => {
   const s=fresh();s.questions[1].output=categorical();
   assert.ok(codes(s,{kinds:['boolean'],nativeDistribution:true,nativeAbstention:false}).includes('QBE001'));
 });
+test('parent object selector containing a declared field from a later stage is flagged', () => {
+  const s=fresh();
+  s.state.fields[0].pointer='/trace';
+  s.state.fields.push({...s.state.fields[3],id:'late_evidence',pointer:'/trace/late',availableFrom:'complete',role:'evidence',derivedFrom:[]});
+  expects(s,'QCT004');
+});
+test('parent object selector is not flagged when its declared children are available', () => {
+  const s=fresh();
+  s.state.fields[0].pointer='/trace';
+  s.state.fields.push({...s.state.fields[3],id:'early_evidence',pointer:'/trace/early',availableFrom:'start',role:'evidence',derivedFrom:[]});
+  assert.deepEqual(codes(s),[]);
+});
+test('unregistered nested data is outside the static guarantee', () => {
+  const s=fresh();
+  s.state.fields[0].pointer='/trace';
+  assert.deepEqual(codes(s),[]);
+});
 test('separate prerequisite branches are not implicitly ordered', () => {
   const s=fresh();s.state.stages.push({id:'review',after:['start']});s.state.fields[1].availableFrom='review';expects(s,'QCT004');
 });

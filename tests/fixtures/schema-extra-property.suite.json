@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "0.1",
+  "id": "fixture_suite",
+  "state": {
+    "id": "fixture_state",
+    "stages": [
+      {
+        "id": "start",
+        "after": []
+      },
+      {
+        "id": "complete",
+        "after": [
+          "start"
+        ]
+      }
+    ],
+    "fields": [
+      {
+        "id": "task",
+        "pointer": "/task",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "start",
+        "role": "evidence",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      },
+      {
+        "id": "outcome",
+        "pointer": "/outcome",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "complete",
+        "role": "target",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q_one",
+      "revision": 1,
+      "mode": "interpret",
+      "instructions": "Is the task complete?",
+      "confidence": 0.9,
+      "inputs": [
+        "task"
+      ],
+      "policyRefs": [],
+      "applicability": "A task exists.",
+      "evidenceBoundary": "Only the task text is evidence.",
+      "missingInput": "abstain",
+      "insufficientEvidence": "abstain",
+      "output": {
+        "kind": "boolean",
+        "criteria": {
+          "true": "Complete.",
+          "false": "Not complete."
+        }
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "questionId": "q_one",
+      "atStage": "start",
+      "profile": "feature",
+      "gates": [],
+      "onIndeterminate": "abstain"
+    }
+  ]
+}

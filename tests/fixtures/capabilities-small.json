@@ -1,0 +1,9 @@
+{
+  "kinds": [
+    "boolean",
+    "categorical"
+  ],
+  "nativeDistribution": true,
+  "nativeAbstention": false,
+  "maxCategoricalOptions": 1
+}

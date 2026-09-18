@@ -14,6 +14,17 @@ for path in sorted((ROOT/'examples').glob('*.suite.json')):
     results.append({'test':f'schema accepts {path.name}','passed':True})
 d.validate(read('examples/diagnostic.model-signal.json'))
 results.append({'test':'diagnostic schema validates the explicitly synthetic fixture','passed':True})
+located=read('examples/diagnostic.model-signal.json')
+located['locations'][0].update({'file':'suite.json','line':3,'column':5})
+d.validate(located)
+results.append({'test':'diagnostic locations accept optional file/line/column','passed':True})
+def negative_diag(name,change):
+    sample=deepcopy(read('examples/diagnostic.model-signal.json'));change(sample)
+    assert list(d.iter_errors(sample)), name
+    results.append({'test':name,'passed':True})
+negative_diag('non-positive diagnostic line rejected',lambda s:s['locations'][0].update({'line':0}))
+negative_diag('non-positive diagnostic column rejected',lambda s:s['locations'][0].update({'column':-1}))
+negative_diag('blank diagnostic file rejected',lambda s:s['locations'][0].update({'file':' '}))
 base=read('examples/scope-monitor.suite.json')
 def negative(name,change):
     sample=deepcopy(base);change(sample)
