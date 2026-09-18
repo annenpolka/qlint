@@ -192,7 +192,11 @@ modelへ送る対象は、question、参照するstate contractの説明、polic
 
 candidate内に「この検査を無視せよ」とあっても、検査設定や認可は変更できない構造にする。プロンプトで注意するだけで完全な隔離が実現したとは扱わない。
 
-実装メモ（2026-09-18 参照screening）: `rules/screening-pack.json`のmeta-question（適用可能性・材料十分性・違反疑いの3 Noul）を質問ごとに1リクエストへまとめる。stateへ載せるのは質問文・criteria・入出力宣言・field記述子のみで、field値・正解ラベル・期待診断・policy本文は送らない。閾値は`screening-reference-v0.1`（0.8/0.8/0.5）としてレポートに記録し、未校正の仮置きであることを明示する。診断はrule engineがrule packから組み立て、モデル出力は確率としてのみ使う。malformed応答とmaterial不足は質問の不良に変換しない。live送信は未実装で、replayとdry-runのみ。
+実装メモ（2026-09-18 参照screening）: `rules/screening-pack.json`のmeta-question（適用可能性・材料十分性・違反疑いの3 Noul）を質問ごとに1リクエストへまとめる。stateへ載せるのは質問文・criteria・入出力宣言・field記述子のみで、field値・正解ラベル・期待診断・policy本文は送らない。閾値は`screening-reference-v0.1`（0.8/0.8/0.5）としてレポートに記録し、未校正の仮置きであることを明示する。診断はrule engineがrule packから組み立て、モデル出力は確率としてのみ使う。malformed応答とmaterial不足は質問の不良に変換しない。
+
+live実行は`--allow-provider typesafe`と`--max-requests`の明示を必須とし、API keyは環境変数のみから読む。budget超過はnot_run、HTTP 429/529・timeout・network障害はbackend_errorとして質問の不良に変換しない。`--record`は生応答をmode 0600で保存し、replayで同一判定を再現できる（2026-09-18に60ケースのlive測定を実施、記録は`evaluation/`）。
+
+評価メモ（2026-09-18）: 60ケース（40欠陥 + 20正当例、30 tuning / 30 eval）をliveで測定した。検出33/40、正当例を止めた割合35%、根拠span一致76%。QBE004は完璧、QSM001は再現率が低く、QSM002は過剰発火した。**これはルール品質の測定結果であり、検出器の完成宣言ではない。** 改善はtuning分割で行い、eval分割は新しいheld-outケースを追加するまで確定評価として扱わない。
 
 ### Dataset probe
 
@@ -267,7 +271,7 @@ cache keyには実際のモデル入力と、結果の意味を変えるadapter/
 
 旧baselineと新runは同じcase、同じ意味のoption ID、同じ条件で比較する。質問の意味そのものを変えた変更は、単なる性能改善ではなくcontract変更として承認し直す。
 
-実装メモ（2026-09-18）: 参照実装ではplanとrun reportの内容digest（正規化JSONのSHA-256。時刻・環境・乱数を含めない）を実装し、runはdigest不一致のplanを拒否する。`requestDigest`は`sha256(canonical({questionId, atStage, inputs, policyRefs}))`とする。resolved model、adapter版、cache key、tenant分離は未実装。
+実装メモ（2026-09-18）: 参照実装ではplanとrun reportの内容digest（正規化JSONのSHA-256。時刻・環境・乱数を含めない）を実装し、runはdigest不一致のplanを拒否する。`requestDigest`は`sha256(canonical({questionId, atStage, inputs, policyRefs}))`とする。screeningのlive実行では生応答を`--record`（JSONL、mode 0600）へ保存し、requestDigestでreplayできる。resolved model、adapter版、cache key、tenant分離は未実装。
 
 ## 11. 既存構想との接続
 
@@ -288,13 +292,14 @@ Wardenはquestion/profile/backend版を固定して利用し、実行イベン�
 - backend capabilityが渡された場合の型・個数チェック2ルール。
 - 参照lint CLI: Schema検証（QCT001）、pointerからfile:line:columnへの解決、coverage表示、exit code。参照チェックはSchema検証を通過した入力にだけ実行する。
 - inspect/run（replay専用）: per-question projection、policyRefsの分離、excluded/restrictedの記録、limitsの根拠、planとrun reportの内容digest、`requestDigest`によるrecorded response照合、not_run/exit 3。
-- Jev adapter（Noul/Choice/Scoreの厳格な検証、再正規化なし）とsemantic screening（QSM001–004、QBE004のmeta-question、replay/dry-run、`model_signal`診断、注入耐性テスト）。
-- synthetic fixtures、テスト80件、Schema検証23件（`validation/`）。
+- Jev adapter（Noul/Choice/Scoreの厳格な検証、再正規化なし）とsemantic screening（QSM001–004、QBE004のmeta-question、dry-run/replay/live、`model_signal`診断、注入耐性テスト）。
+- live transport（明示許可・予算必須、keyは環境変数のみ、backend障害の分離、`--record`/`--replay`再現）と、screening評価セット60ケース＋計測器（tuning/eval分離）。
+- synthetic fixtures、テスト90件、Schema検証23件（`validation/`）。
 
 未実装:
 
 - 製品版CLI（live provider実行、profile実行、probe/fuzz/diff、YAML parser、SARIF/LSP）、実スナップショットの実時刻検証、adapter normalization、gate runtime。
-- Jev/他backendへのlive通信（参照実装はreplay/dry-runのみ）、統合評価セット（60ケース目標）、calibration。
+- ルール品質の改善と新しいheld-out評価セット（現行60ケースは測定済み。QSM001の再現率とQSM002の精度が未達）、閾値のcalibration、他backendへのlive通信。
 - gate runtime、population probe、fuzz generator、baseline diff、calibration。
 - 任意のprivate repositoryへの配置、commit、外部サービスでの作成・公開。
 

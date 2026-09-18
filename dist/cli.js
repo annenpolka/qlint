@@ -11,10 +11,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { parseBackendCapabilities } from "./capabilities.js";
 import { InternalLintError, LINT_SCOPE, lintSuiteSource } from "./lint-suite.js";
-import { buildScreeningRequests, screenFromRecordings, ScreeningError } from "./screening.js";
+import { buildScreeningRequests, screenFromRecordings, screenLive, ScreeningError } from "./screening.js";
 import { buildPlan, PlanError, planDigest } from "./plan.js";
 import { ReplayError, replayPlan, runReportDigest } from "./replay.js";
 import { createSchemaValidators, loadSchemaSync } from "./schema-validation.js";
+import { createHttpTransport } from "./transport.js";
 export const USAGE = `qlint — question contract checker (reference implementation)
 
 Usage:
@@ -23,8 +24,10 @@ Usage:
                  [--max-requests N] [--max-bytes N] [--max-tokens N] [--allow-restricted]
   qlint run <plan.json> --cases <cases.jsonl> --replay <recorded.jsonl>
              [--out <report.json>] [--format text|json]
-  qlint screen <suite.json> (--replay <recorded.jsonl> | --dry-run)
-              [--out <report.json>] [--format text|json] [--fail-on-signal]
+  qlint screen <suite.json> (--replay <recorded.jsonl> | --dry-run
+                             | --allow-provider typesafe --max-requests N)
+              [--out <report.json>] [--record <recorded.jsonl>] [--timeout-seconds N]
+              [--format text|json] [--fail-on-signal]
   qlint --help
   qlint --version
 
@@ -42,8 +45,11 @@ inspect writes a digest-bound execution plan; it never contacts a provider.
 run executes a plan against recorded responses only; live providers are not
 implemented in this bundle.
 screen asks the semantic screening meta-questions over recorded Jev responses
-(or prints them with --dry-run). Signals are model_signal diagnostics; without
---fail-on-signal they do not fail the command.`;
+or, with --allow-provider typesafe, over the live endpoint. Live mode reads
+TYPESAFE_API_KEY from the environment (the key is never printed or stored),
+requires an explicit --max-requests budget, and records backend failures as
+backend_error observations rather than question defects. Signals are
+model_signal diagnostics; without --fail-on-signal they do not fail the command.`;
 class CliError extends Error {
 }
 function errorMessage(error) {
@@ -86,7 +92,7 @@ function loadValidators() {
 }
 const VALUE_FLAGS = new Set([
     "--out", "--format", "--capabilities", "--max-requests", "--max-bytes", "--max-tokens",
-    "--cases", "--replay", "--allow-provider",
+    "--cases", "--replay", "--allow-provider", "--timeout-seconds", "--record",
 ]);
 const BOOLEAN_FLAGS = new Set(["--help", "-h", "--version", "-v", "--allow-restricted", "--dry-run", "--fail-on-signal"]);
 function parseArgv(argv) {
@@ -213,7 +219,7 @@ function parseArgs(argv) {
         return { kind: "run", planPath: file, casesPath, replayPath, format, ...(out === undefined ? {} : { out }) };
     }
     if (commandName === "screen") {
-        const flagError = checkFlags(parsed, ["--out", "--format", "--replay"], ["--dry-run", "--fail-on-signal"]);
+        const flagError = checkFlags(parsed, ["--out", "--format", "--replay", "--max-requests", "--timeout-seconds", "--record", "--allow-provider"], ["--dry-run", "--fail-on-signal"]);
         if (flagError)
             return { kind: "error", message: flagError };
         const format = parseFormat(parsed);
@@ -221,10 +227,27 @@ function parseArgs(argv) {
             return { kind: "error", message: format };
         const replayPath = parsed.flags.get("--replay");
         const dryRun = parsed.booleans.has("--dry-run");
-        if (replayPath === undefined && !dryRun) {
-            return { kind: "error", message: "screen requires --replay <recorded.jsonl> (or --dry-run)" };
+        const providerFlag = parsed.flags.get("--allow-provider");
+        if (providerFlag !== undefined && providerFlag !== "typesafe") {
+            return { kind: "error", message: `unsupported provider: ${providerFlag} (only "typesafe")` };
+        }
+        if (providerFlag !== undefined && replayPath !== undefined) {
+            return { kind: "error", message: "--allow-provider and --replay are mutually exclusive" };
+        }
+        const maxRequests = positiveInteger(parsed, "--max-requests");
+        const timeoutSeconds = positiveInteger(parsed, "--timeout-seconds");
+        for (const value of [maxRequests, timeoutSeconds]) {
+            if (typeof value === "string")
+                return { kind: "error", message: value };
+        }
+        if (providerFlag !== undefined && !dryRun && typeof maxRequests !== "number") {
+            return { kind: "error", message: "live screening requires an explicit --max-requests budget" };
+        }
+        if (replayPath === undefined && providerFlag === undefined && !dryRun) {
+            return { kind: "error", message: "screen requires --replay <recorded.jsonl>, --allow-provider typesafe, or --dry-run" };
         }
         const out = parsed.flags.get("--out");
+        const recordPath = parsed.flags.get("--record");
         return {
             kind: "screen",
             file,
@@ -233,6 +256,10 @@ function parseArgs(argv) {
             failOnSignal: parsed.booleans.has("--fail-on-signal"),
             ...(replayPath === undefined ? {} : { replayPath }),
             ...(out === undefined ? {} : { out }),
+            ...(providerFlag === undefined ? {} : { allowProvider: "typesafe" }),
+            ...(typeof maxRequests === "number" ? { maxRequests } : {}),
+            ...(typeof timeoutSeconds === "number" ? { timeoutSeconds } : {}),
+            ...(recordPath === undefined ? {} : { recordPath }),
         };
     }
     return { kind: "error", message: `unknown command: ${commandName}` };
@@ -420,11 +447,14 @@ function renderScreeningRequestsText(requests) {
 }
 function renderScreeningText(report) {
     const lines = [];
-    lines.push(`qlint ${report.tool.version} — screening (provider: ${report.provider}; network: no)`);
+    lines.push(`qlint ${report.tool.version} — screening (provider: ${report.provider}${report.model === undefined ? "" : `, model: ${report.model}`}; network: ${report.provider === "typesafe" ? "yes" : "no"})`);
     lines.push(`suite: ${report.suite.id} (${report.suite.digest})`);
     lines.push(`policy: ${report.policy.policyId} (applicability>=${report.policy.applicabilityAtLeast}, sufficiency>=${report.policy.sufficiencyAtLeast}, signal>=${report.policy.signalAtLeast})`);
+    if (report.usage !== undefined) {
+        lines.push(`usage: ${report.usage.requests} requests, ${report.usage.inputTokens} input tokens, ${report.usage.outputTokens} output tokens, ${report.usage.latencyMs} ms`);
+    }
     lines.push(`requests: ${report.summary.requests}`);
-    lines.push(`observations: ${report.summary.signals} signals, ${report.summary.inconclusive} inconclusive, ${report.summary.notRun} not run, ${report.summary.malformed} malformed`);
+    lines.push(`observations: ${report.summary.signals} signals, ${report.summary.inconclusive} inconclusive, ${report.summary.notRun} not run, ${report.summary.malformed} malformed, ${report.summary.backendErrors} backend errors`);
     for (const observation of report.observations) {
         if (observation.status === "no_signal")
             continue;
@@ -445,6 +475,8 @@ function renderScreeningText(report) {
     return lines.join("\n") + "\n";
 }
 function exitCodeForScreening(report, failOnSignal) {
+    if (report.summary.backendErrors > 0)
+        return 2;
     if (report.summary.malformed > 0)
         return 2;
     if (failOnSignal && report.diagnostics.length > 0)
@@ -453,7 +485,7 @@ function exitCodeForScreening(report, failOnSignal) {
         return 3;
     return 0;
 }
-export function run(argv, streams) {
+export async function run(argv, streams) {
     const command = parseArgs(argv);
     if (command.kind === "help") {
         streams.stdout(USAGE + "\n");
@@ -536,10 +568,36 @@ export function run(argv, streams) {
                     : renderScreeningRequestsText(requests));
                 return 0;
             }
-            if (command.replayPath === undefined)
-                throw new CliError("screen requires --replay <recorded.jsonl>");
-            const recordings = readRecordings(command.replayPath);
-            const report = screenFromRecordings(suite, pack, recordings, readVersion());
+            let report;
+            if (command.allowProvider === "typesafe") {
+                const apiKey = process.env.TYPESAFE_API_KEY;
+                if (apiKey === undefined || apiKey === "") {
+                    throw new CliError("TYPESAFE_API_KEY is not set; qlint never prints or stores the key");
+                }
+                const transport = createHttpTransport({
+                    apiKey,
+                    timeoutMs: (command.timeoutSeconds ?? 30) * 1000,
+                });
+                const recordings = [];
+                const outcome = await screenLive(suite, pack, transport, readVersion(), {
+                    ...(command.maxRequests === undefined ? {} : { maxRequests: command.maxRequests }),
+                    onRecord: recording => recordings.push(recording),
+                });
+                if (command.recordPath !== undefined) {
+                    const body = recordings.map(recording => JSON.stringify(recording)).join("\n");
+                    writeFileSync(command.recordPath, recordings.length === 0 ? "" : `${body}\n`, { mode: 0o600 });
+                }
+                if (outcome.failures.length > 0) {
+                    streams.stderr(`qlint: ${outcome.failures.length} backend failure(s); first: ${outcome.failures[0].failure.message}\n`);
+                }
+                report = outcome.report;
+            }
+            else {
+                if (command.replayPath === undefined)
+                    throw new CliError("screen requires --replay <recorded.jsonl>");
+                const recordings = readRecordings(command.replayPath);
+                report = screenFromRecordings(suite, pack, recordings, readVersion());
+            }
             for (const diagnostic of report.diagnostics) {
                 const issues = validators.diagnostic(diagnostic);
                 if (issues.length > 0) {
@@ -586,8 +644,10 @@ export function run(argv, streams) {
 }
 const invokedPath = process.argv[1];
 if (invokedPath !== undefined && import.meta.url === pathToFileURL(invokedPath).href) {
-    process.exitCode = run(process.argv.slice(2), {
+    void run(process.argv.slice(2), {
         stdout: text => process.stdout.write(text),
         stderr: text => process.stderr.write(text),
+    }).then(code => {
+        process.exitCode = code;
     });
 }

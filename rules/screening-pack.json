@@ -9,17 +9,17 @@
       "message": "独立に変わり得る概念が、意図の説明なしに一つの答えへ合成されている疑いがある。",
       "appliesTo": {},
       "applicability": {
-        "instructions": "Is the compound-judgment rule applicable to the shown question?",
+        "instructions": "Is the compound-judgment rule relevant to the shown question?",
         "criteria": {
-          "true": "The shown instructions ask for a single answer that could cover more than one concept.",
-          "false": "The shown instructions ask about one concept only."
+          "true": "The instructions ask for a single answer that could cover more than one concept.",
+          "false": "The instructions clearly ask about one concept only."
         }
       },
       "sufficiency": {
-        "instructions": "Are the shown question materials sufficient to judge compound judgment reliably?",
+        "instructions": "Are the question instructions, its answer criteria or levels, and its declared output kind all present in the shown specification?",
         "criteria": {
-          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
-          "false": "Important material, such as policy text or representative inputs, is missing."
+          "true": "All of them are present and non-empty.",
+          "false": "At least one of them is absent, empty, or unreadable."
         }
       },
       "violation": {
@@ -36,24 +36,24 @@
       "message": "判定境界または否定側の意味が不足している疑いがある。",
       "appliesTo": {},
       "applicability": {
-        "instructions": "Is the underspecified-boundary rule applicable to the shown question?",
+        "instructions": "Do the instructions or the criteria rely on a qualitative judgment term, for example: appropriate, sufficient, high quality, reasonable, well considered?",
         "criteria": {
-          "true": "The shown question defines a boundary between answers that could be read in more than one way.",
-          "false": "The shown question has no meaningful boundary to disagree about."
+          "true": "At least one qualitative judgment term is used.",
+          "false": "The instructions use only concrete, checkable conditions."
         }
       },
       "sufficiency": {
-        "instructions": "Are the shown question materials sufficient to judge boundary specification reliably?",
+        "instructions": "Are the question instructions, its answer criteria or levels, and its declared output kind all present in the shown specification?",
         "criteria": {
-          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
-          "false": "Important material, such as policy text or representative inputs, is missing."
+          "true": "All of them are present and non-empty.",
+          "false": "At least one of them is absent, empty, or unreadable."
         }
       },
       "violation": {
-        "instructions": "Given only the shown instructions and criteria, would different reasonable readers be likely to place the same input on different sides of the boundary, or to disagree about what the negative answer means?",
+        "instructions": "Is at least one qualitative judgment term left undefined everywhere in the shown specification, so that two reasonable readers could place a concrete input on different sides?",
         "criteria": {
-          "true": "The boundary or the negative side is left open enough that reasonable readers could disagree.",
-          "false": "The boundary and the negative side are specified well enough for the shown inputs."
+          "true": "A qualitative term is used but the shown criteria never define it.",
+          "false": "Every qualitative term is defined by the criteria or replaced by concrete conditions."
         }
       }
     },
@@ -62,20 +62,23 @@
       "summary": "extract/interpretとして宣言したが、入力外の観測を要する疑い。predictは同じ基準で拒否しない。",
       "message": "extract/interpretとして宣言されているが、宣言された入力の外側の観測を要する疑いがある。",
       "appliesTo": {
-        "modes": ["extract", "interpret"]
+        "modes": [
+          "extract",
+          "interpret"
+        ]
       },
       "applicability": {
-        "instructions": "Is the unobservable-as-declared rule applicable to the shown question?",
+        "instructions": "According to the shown declaration, is this question declared with mode extract or interpret?",
         "criteria": {
-          "true": "The question is declared as extract or interpret and could require information outside its declared inputs.",
-          "false": "The question is declared as predict, or the rule's subject matter is absent."
+          "true": "The declared mode is extract or interpret.",
+          "false": "The declared mode is something else, such as predict."
         }
       },
       "sufficiency": {
-        "instructions": "Are the shown question materials sufficient to judge observability reliably?",
+        "instructions": "Are the question instructions, its answer criteria or levels, and its declared output kind all present in the shown specification?",
         "criteria": {
-          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
-          "false": "Important material, such as policy text or representative inputs, is missing."
+          "true": "All of them are present and non-empty.",
+          "false": "At least one of them is absent, empty, or unreadable."
         }
       },
       "violation": {
@@ -92,24 +95,24 @@
       "message": "求める答えの形と、宣言されたboolean/categorical/ordinalの構成が一致しない疑いがある。",
       "appliesTo": {},
       "applicability": {
-        "instructions": "Is the primitive-mismatch rule applicable to the shown question?",
+        "instructions": "Does the shown specification declare an output kind (boolean, categorical, or ordinal)?",
         "criteria": {
-          "true": "The shown question has both instructions and a declared answer shape that could disagree.",
-          "false": "The shown question has no declared answer shape to compare."
+          "true": "An output kind is declared.",
+          "false": "No output kind is declared."
         }
       },
       "sufficiency": {
-        "instructions": "Are the shown question materials sufficient to compare the instructions with the answer shape reliably?",
+        "instructions": "Are the question instructions, its answer criteria or levels, and its declared output kind all present in the shown specification?",
         "criteria": {
-          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
-          "false": "Important material, such as policy text or representative inputs, is missing."
+          "true": "All of them are present and non-empty.",
+          "false": "At least one of them is absent, empty, or unreadable."
         }
       },
       "violation": {
-        "instructions": "Does the declared answer shape (the output kind with its criteria, options, or levels) fail to represent the judgment that the instructions actually ask for?",
+        "instructions": "Do the instructions ask for information that the declared answer shape cannot record - for example asking which item, which category, or how much while the output kind is boolean, or declaring an ordinal scale over categories that have no natural order?",
         "criteria": {
-          "true": "The instructions ask for something the declared answer shape cannot express or record.",
-          "false": "The declared answer shape can express the judgment in the instructions."
+          "true": "The instructions require information that the declared answer shape cannot record.",
+          "false": "The declared answer shape can record what the instructions ask for."
         }
       }
     },
@@ -117,21 +120,24 @@
       "id": "QBE004",
       "summary": "単独評価されるlevelが、前の段階など他levelの説明に依存する。",
       "message": "単独で評価されるはずのlevelが、他levelの説明に依存している疑いがある。",
+      "evidencePath": "/output",
       "appliesTo": {
-        "outputKinds": ["ordinal"]
+        "outputKinds": [
+          "ordinal"
+        ]
       },
       "applicability": {
-        "instructions": "Is the context-dependent-level rule applicable to the shown question?",
+        "instructions": "Is the context-dependent-level rule relevant to the shown question?",
         "criteria": {
-          "true": "The shown question is an ordinal question with level descriptions.",
-          "false": "The shown question has no ordinal levels."
+          "true": "The question declares ordinal levels.",
+          "false": "The question has no ordinal levels."
         }
       },
       "sufficiency": {
-        "instructions": "Are the shown question materials sufficient to judge whether each level stands alone reliably?",
+        "instructions": "Are the question instructions, its answer criteria or levels, and its declared output kind all present in the shown specification?",
         "criteria": {
-          "true": "The level descriptions and instructions shown here are enough.",
-          "false": "Important material, such as policy text or the full level text, is missing."
+          "true": "All of them are present and non-empty.",
+          "false": "At least one of them is absent, empty, or unreadable."
         }
       },
       "violation": {

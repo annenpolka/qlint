@@ -16,7 +16,8 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && npm run test:types && node --test tests/*.test.mjs",
     "test:types": "node scripts/generate-contract-types.mjs && tsc -p tsconfig.typecheck.json",
-    "qlint": "node dist/cli.js"
+    "qlint": "node dist/cli.js",
+    "evaluate:corpus": "node evaluation/run-corpus.mjs"
   },
   "devDependencies": {
     "@types/node": "26.6.1",

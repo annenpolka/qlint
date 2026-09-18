@@ -216,17 +216,25 @@ export interface ScreeningRequest {
 export interface ScreeningObservation {
   questionId: Id;
   ruleId: Id;
-  status: "signal" | "no_signal" | "not_applicable" | "inconclusive" | "malformed" | "not_run";
+  status: "signal" | "no_signal" | "not_applicable" | "inconclusive" | "malformed" | "backend_error" | "not_run";
   applicability?: number;
   sufficiency?: number;
   violation?: number;
   problems?: string[];
 }
+export interface ScreeningUsage {
+  requests: number;
+  inputTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+}
 export interface ScreeningReport {
   schemaVersion: "0.1";
   kind: "qlint.screening-report";
   tool: { name: "qlint"; version: string };
-  provider: "replay";
+  provider: "replay" | "typesafe";
+  model?: string;
+  usage?: ScreeningUsage;
   suite: { id: Id; digest: string };
   policy: ScreeningPolicy;
   observations: ScreeningObservation[];
@@ -239,6 +247,7 @@ export interface ScreeningReport {
     inconclusive: number;
     notRun: number;
     malformed: number;
+    backendErrors: number;
   };
   notExecuted: string[];
   digest: string;
@@ -247,6 +256,8 @@ export interface ScreeningRuleDefinition {
   id: Id;
   summary: string;
   message: string;
+  /** JSON Pointer suffix inside the question that the diagnostic points at. */
+  evidencePath?: string;
   appliesTo: {
     modes?: QuestionSpec["mode"][];
     outputKinds?: OutputSpec["kind"][];

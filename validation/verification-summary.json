@@ -1,9 +1,9 @@
 {
-  "status": "design_and_offline_reference_implementation_with_lint_inspect_screen",
+  "status": "design_and_reference_implementation_with_live_measurement",
   "node": "v26.0.0",
   "typescript": "Version 5.8.3",
   "static_tests": {
-    "passed": 80,
+    "passed": 90,
     "failed": 0
   },
   "schema_tests": {
@@ -11,15 +11,29 @@
     "failed": 0
   },
   "type_consistency": "schemas to generated types vs src/contracts.ts (QuestionSuite, Diagnostic, ExecutionPlan)",
-  "live_model_requests": 0,
-  "rule_definitions": 33,
-  "implemented_rule_definitions": 11,
-  "cli": "lint (static), inspect (digest-bound plan), run (replay only), screen (replay/dry-run)",
-  "adapter": "strict Noul/Choice/Score validation; no renormalization; malformed reported with issues",
-  "screening": "meta-questions per rule (QSM001-004, QBE004); uncalibrated reference thresholds recorded in the report",
+  "live_model_requests": 242,
+  "live_measurement": {
+    "date": "2026-09-18",
+    "model": "jev-latest",
+    "corpus": "evaluation/cases.jsonl (60 cases: 40 defect / 20 legitimate; 30 tuning / 30 eval)",
+    "requests": 60,
+    "input_tokens": 84862,
+    "output_tokens": 18709,
+    "failures": 0,
+    "results": "evaluation/results-live.json",
+    "recordings": "evaluation/recorded-live.jsonl",
+    "metrics": {
+      "defect_hits": 33,
+      "defect_misses": 7,
+      "unknown": 0,
+      "legitimate_stop_rate": 0.35,
+      "evidence_span_correctness": 0.76
+    }
+  },
+  "screening_rule_quality": "QBE004 tp8/fp0; QSM003 tp8/fp3; QSM004 tp7/fn1; QSM001 tp2/fn6 (low recall); QSM002 tp8/fp19 (over-firing). Improvement must use the tuning split; the eval split stays held-out until new cases are added.",
   "not_implemented": [
-    "live provider execution (real Jev send)",
-    "screening evaluation set (target 60 cases) and calibration",
+    "screening rule improvements and a fresh held-out evaluation set",
+    "threshold calibration",
     "profile runs",
     "state snapshot runtime validation with real timestamps",
     "gate runtime",

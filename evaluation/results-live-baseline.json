@@ -1,0 +1,744 @@
+{
+  "mode": "live",
+  "model": "jev-latest",
+  "policy": {
+    "policyId": "screening-reference-v0.1",
+    "applicabilityAtLeast": 0.8,
+    "sufficiencyAtLeast": 0.8,
+    "signalAtLeast": 0.5,
+    "note": "Uncalibrated defaults for the reference implementation. Choose thresholds on validation data before relying on them; a signal is a model_signal, not a verdict."
+  },
+  "metrics": {
+    "corpus": {
+      "total": 60,
+      "defect": 40,
+      "legitimate": 20
+    },
+    "overall": {
+      "perRule": {
+        "QSM001": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 8,
+          "fp": 0
+        },
+        "QSM002": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 8,
+          "fp": 0
+        },
+        "QSM003": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 8,
+          "fp": 0
+        },
+        "QSM004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 8,
+          "fp": 0
+        },
+        "QBE004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 8,
+          "fp": 0
+        }
+      },
+      "legitimateStopRate": 0,
+      "evidenceSpanCorrectness": null,
+      "defectHits": 0,
+      "defectUnknown": 40,
+      "defectMisses": 0
+    },
+    "tuning": {
+      "perRule": {
+        "QSM001": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM002": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM003": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QBE004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        }
+      },
+      "legitimateStopRate": 0,
+      "evidenceSpanCorrectness": null,
+      "defectHits": 0,
+      "defectUnknown": 20,
+      "defectMisses": 0
+    },
+    "eval": {
+      "perRule": {
+        "QSM001": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM002": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM003": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QSM004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        },
+        "QBE004": {
+          "tp": 0,
+          "fn": 0,
+          "unknown": 4,
+          "fp": 0
+        }
+      },
+      "legitimateStopRate": 0,
+      "evidenceSpanCorrectness": null,
+      "defectHits": 0,
+      "defectUnknown": 20,
+      "defectMisses": 0
+    }
+  },
+  "usage": {
+    "requests": 60,
+    "inputTokens": 82378,
+    "outputTokens": 18709,
+    "latencyMs": 18811
+  },
+  "backendFailures": 0,
+  "cases": [
+    {
+      "caseId": "qsm001_defect_ja_01",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_en_01",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_ja_02",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_en_02",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_ja_03",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_en_03",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_ja_04",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_defect_en_04",
+      "family": "QSM001",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_legit_ja_01",
+      "family": "QSM001",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_legit_en_01",
+      "family": "QSM001",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_legit_ja_02",
+      "family": "QSM001",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm001_legit_en_02",
+      "family": "QSM001",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_ja_01",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_en_01",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_ja_02",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_en_02",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_ja_03",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_en_03",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_ja_04",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_defect_en_04",
+      "family": "QSM002",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_legit_ja_01",
+      "family": "QSM002",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_legit_en_01",
+      "family": "QSM002",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_legit_ja_02",
+      "family": "QSM002",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm002_legit_en_02",
+      "family": "QSM002",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_ja_01",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_en_01",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_ja_02",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_en_02",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_ja_03",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_en_03",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_ja_04",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_defect_en_04",
+      "family": "QSM003",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_legit_ja_01",
+      "family": "QSM003",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_legit_en_01",
+      "family": "QSM003",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_legit_ja_02",
+      "family": "QSM003",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm003_legit_en_02",
+      "family": "QSM003",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_ja_01",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_en_01",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_ja_02",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_en_02",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_ja_03",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_en_03",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_ja_04",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_defect_en_04",
+      "family": "QSM004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_legit_ja_01",
+      "family": "QSM004",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_legit_en_01",
+      "family": "QSM004",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_legit_ja_02",
+      "family": "QSM004",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qsm004_legit_en_02",
+      "family": "QSM004",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_ja_01",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_en_01",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_ja_02",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_en_02",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_ja_03",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_en_03",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "tuning",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_ja_04",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_defect_en_04",
+      "family": "QBE004",
+      "kind": "defect",
+      "split": "eval",
+      "outcome": "unknown",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_legit_ja_01",
+      "family": "QBE004",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_legit_en_01",
+      "family": "QBE004",
+      "kind": "legitimate",
+      "split": "tuning",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_legit_ja_02",
+      "family": "QBE004",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    },
+    {
+      "caseId": "qbe004_legit_en_02",
+      "family": "QBE004",
+      "kind": "legitimate",
+      "split": "eval",
+      "outcome": "clean",
+      "signalRules": [],
+      "spanOk": null,
+      "diagnostics": 0
+    }
+  ]
+}

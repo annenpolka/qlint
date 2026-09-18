@@ -2,7 +2,7 @@
 
 自然言語で定義された判定関数の **契約・観測可能性・backend適合性・挙動** を検査するための設計パッケージ。
 
-**状態: v0.1の設計 + オフライン参照実装。lint / inspect / run（replay）/ screen（replay・dry-run）は動くが、製品版qlintコマンドではない。** 実Jevへの送信、probe、fuzzはまだない。名称は仮称。
+**状態: v0.1の設計 + 参照実装。lint / inspect / run（replay）/ screen（dry-run・replay・live）は動き、60ケースの評価セットでlive測定を1回実施済み。** probe、fuzzはまだない。名称は仮称。
 
 ## 読む場所
 
@@ -72,6 +72,36 @@ node dist/cli.js screen examples/scope-monitor.suite.json --replay recorded-sign
 - 診断はrule engineがrule packから組み立てる`model_signal`（warning）。モデルの自由文は診断にならない。severityは`--fail-on-signal`を明示しない限りCIを落とさない。
 - exit code: malformed応答あり→2（backend/検査器の障害。質問の不良とはしない）、`--fail-on-signal`でsignalあり→1、記録不足→3（判定保留）、それ以外→0。
 
+live実行（明示的な許可が必要）:
+
+```sh
+TYPESAFE_API_KEY=... node dist/cli.js screen examples/scope-monitor.suite.json \
+  --allow-provider typesafe --max-requests 4 --record recorded.jsonl --out report.json
+```
+
+- `--allow-provider typesafe`を明示しない限りnetworkに出ない。`--max-requests`が必須（予算の明示）。
+- API keyは環境変数`TYPESAFE_API_KEY`からのみ読み、表示・保存・エラーメッセージへの混入をしない。
+- budget超過分は`not_run`として残る。HTTP 429/529・timeout・network障害は`backend_error`観測として記録し、質問の不良に変換しない（exit 2）。
+- `--record`で生応答をJSONL（mode 0600）に保存でき、`--replay`で同じ判定をnetworkなしで再現できる。
+
+## 評価セット（60ケース）
+
+`evaluation/`にscreening自体の評価データと計測器がある。
+
+- `case-definitions.mjs`が人間が書いた60ケース（実装済み5ルールfamily × 8欠陥 = 40件、明示AND・明確な境界・predict宣言・自己完結level・best_fit重なりなどの正当例20件）を定義する。30件がtuning、30件がeval。言い換え・日英を同じgroupIdに束ねる。
+- `validate-cases.mjs`は件数・分割・ID重複・lint違反・期待ルールの適用可否をオフラインで検査する。
+- `run-corpus.mjs`はlive（`TYPESAFE_API_KEY`必須、ケースごとに1リクエスト）または`--replay`で走り、rule別tp/fn/unknown/fp、正当例を止めた割合、根拠spanの一致率、usage、失敗数をtuning/eval別に出す。
+
+2026-09-18のlive測定（jev-latest、60リクエスト、84,862 input / 18,709 output tokens、失敗0）:
+
+| 指標 | overall | tuning | eval |
+|---|---|---|---|
+| 欠陥を検出 (hits/40) | 33 | 17 | 16 |
+| 正当例を止めた割合 | 35% | 30% | 40% |
+| 根拠span一致 | 76% | 76% | 75% |
+
+rule別: QBE004はtp 8/fp 0。QSM003はtp 8/fp 3、QSM004はtp 7/fn 1。**QSM001はtp 2/fn 6と再現率が低く、QSM002はfp 19と過剰発火**。改善はtuning分割で行い、eval分割は新しいケースを足すまでheld-outとして扱う。生応答は`evaluation/recorded-live.jsonl`にあり、`node evaluation/run-corpus.mjs --replay evaluation/recorded-live.jsonl`で同じ指標を再現できる（実行確認済み）。
+
 ## オフラインの試験
 
 `dist/`は同梱済みなので、Node.jsから次をそのまま実行できる。
@@ -96,7 +126,7 @@ python3 -m pip install -r validation/requirements.txt
 python3 validation/check_contracts.py
 ```
 
-このbundleでの検証結果はテスト80件、Schema検証23件、型整合性検査、いずれも失敗0件。`validation/`に結果を収録。
+このbundleでの検証結果はテスト90件、Schema検証23件、型整合性検査、いずれも失敗0件。live測定の記録は`evaluation/`と`validation/live/`に収録。
 
 ## ライブラリ利用例
 
@@ -118,7 +148,7 @@ console.log(report.notExecuted);
 
 判定が役に立つかはFeature CompilerやWardenが決める。qlintは判定を実行してよいか、どの契約やテストで問題が見つかったか、何をまだ調べていないかを返す。
 
-`inspect`（replay用plan生成）、`run`（replay実行）、`screen`（replay・dry-run）は参照実装がある。`probe/fuzz/diff`とlive provider実行（実Jevへの送信）は設計書の提案であり、このbundleでは実行できない。
+`inspect`（replay用plan生成）、`run`（replay実行）、`screen`（dry-run・replay・明示許可つきlive）は参照実装がある。`probe/fuzz/diff`は設計書の提案であり、このbundleでは実行できない。
 
 ## ライセンス
 
