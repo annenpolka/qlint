@@ -68,3 +68,7 @@ console.log(report.notExecuted);
 判定が役に立つかはFeature CompilerやWardenが決める。qlintは判定を実行してよいか、どの契約やテストで問題が見つかったか、何をまだ調べていないかを返す。
 
 `inspect/run/probe/fuzz/diff`等のCLIは設計書の提案であり、このbundleで実行できるコマンドではない。
+
+## ライセンス
+
+MIT。`LICENSE` を参照。

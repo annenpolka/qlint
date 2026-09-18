@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Offline reference contracts and cross-reference checks; not the full qlint CLI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/annenpolka/qlint.git"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test tests/*.test.mjs"
