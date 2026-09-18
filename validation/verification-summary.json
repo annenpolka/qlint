@@ -1,25 +1,26 @@
 {
-  "status": "design_and_offline_reference_implementation_with_static_lint_cli",
+  "status": "design_and_offline_reference_implementation_with_lint_inspect_run_replay",
   "node": "v26.0.0",
   "typescript": "Version 5.8.3",
   "static_tests": {
-    "passed": 47,
+    "passed": 65,
     "failed": 0
   },
   "schema_tests": {
-    "passed": 19,
+    "passed": 23,
     "failed": 0
   },
-  "type_consistency": "schemas to generated types vs src/contracts.ts (tsconfig.typecheck.json)",
+  "type_consistency": "schemas to generated types vs src/contracts.ts (QuestionSuite, Diagnostic, ExecutionPlan)",
   "live_model_requests": 0,
   "rule_definitions": 33,
   "implemented_rule_definitions": 11,
-  "lint_cli": "reference implementation: JSON Schema + cross-reference checks, file positions, coverage, exit codes 0/1/2",
+  "cli": "lint (static), inspect (digest-bound plan), run (replay only, network not used)",
   "not_implemented": [
-    "profile runs and inspect/plan",
+    "live provider execution",
+    "profile runs",
     "Jev adapter",
     "semantic screening",
-    "state projection runtime",
+    "state snapshot runtime validation with real timestamps",
     "gate runtime",
     "probe",
     "fuzz",

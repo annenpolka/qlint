@@ -46,9 +46,11 @@ export function createSchemaValidators(sources) {
     const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
     const suite = ajv.compile(sources.suite);
     const diagnostic = ajv.compile(sources.diagnostic);
+    const executionPlan = ajv.compile(sources.executionPlan);
     return {
         suite: data => toIssues(suite(data) ? null : suite.errors),
         diagnostic: data => toIssues(diagnostic(data) ? null : diagnostic.errors),
+        executionPlan: data => toIssues(executionPlan(data) ? null : executionPlan.errors),
     };
 }
 /** Reads a schema file. Boundary function: filesystem access is not hidden in the validators. */

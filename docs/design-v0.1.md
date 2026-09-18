@@ -243,7 +243,7 @@ Assessment.status:
     qlint fuzz generate questions.json --out candidates.jsonl
     qlint diff baseline.run.json candidate.run.json
 
-`qlint lint`のみ参照実装（`dist/cli.js`）。`--format json`、`--capabilities`、coverage表示、exit 0/1/2を持つ。inspect/run/probe/fuzz/diffは提案であり未実装で、YAML入力とSARIF/LSPも次段階。
+`qlint lint`、`qlint inspect`、`qlint run`（replay専用）が参照実装（`dist/cli.js`）。lintは`--format json`/`--capabilities`/coverage表示/exit 0・1・2。inspectはper-question projection、redaction記録、limitsの根拠、内容digest付きplanを出力する。runはdigest検証、projection（欠損/nullはabstain、型違反はinvalidとして送信しない）、`requestDigest`によるrecorded response照合を行い、exit 0・1・2・3（記録不足で判定保留）を返す。probe/fuzz/diff、live provider実行、YAML入力、SARIF/LSPは未実装。
 
 inspectとrunを分ける。lint/inspectは外部送信しない。runはprovider、送信field、redaction、予算、timeout、retry上限、並列数が確定したplanを明示的に実行する。fuzz generateが外部生成モデルを使う場合も同じplan/許可機構を通す。
 
@@ -263,6 +263,8 @@ cache keyには実際のモデル入力と、結果の意味を変えるadapter/
 
 旧baselineと新runは同じcase、同じ意味のoption ID、同じ条件で比較する。質問の意味そのものを変えた変更は、単なる性能改善ではなくcontract変更として承認し直す。
 
+実装メモ（2026-09-18）: 参照実装ではplanとrun reportの内容digest（正規化JSONのSHA-256。時刻・環境・乱数を含めない）を実装し、runはdigest不一致のplanを拒否する。`requestDigest`は`sha256(canonical({questionId, atStage, inputs, policyRefs}))`とする。resolved model、adapter版、cache key、tenant分離は未実装。
+
 ## 11. 既存構想との接続
 
 Feature Compilerは候補質問をqlintへ渡し、invalidは修正し、model_signalは根拠付きでproposerへ返す。低変動は削除命令ではなく情報として受け取る。予測性能による採否はFeature Compilerが行う。
@@ -281,11 +283,12 @@ Wardenはquestion/profile/backend版を固定して利用し、実行イベン�
 - Schemaを通ったsuiteへの静的な参照チェック8ルール。親object selector内の別stage登録fieldも検査する。
 - backend capabilityが渡された場合の型・個数チェック2ルール。
 - 参照lint CLI: Schema検証（QCT001）、pointerからfile:line:columnへの解決、coverage表示、exit code。参照チェックはSchema検証を通過した入力にだけ実行する。
-- synthetic fixtures、テスト47件、Schema検証19件（`validation/`）。
+- inspect/run（replay専用）: per-question projection、policyRefsの分離、excluded/restrictedの記録、limitsの根拠、planとrun reportの内容digest、`requestDigest`によるrecorded response照合、not_run/exit 3。
+- synthetic fixtures、テスト65件、Schema検証23件（`validation/`）。
 
 未実装:
 
-- 製品版CLI（profile実行、inspect/run/probe/fuzz/diff、YAML parser、SARIF/LSP）、実際のstate projectionと時刻検証。
+- 製品版CLI（live provider実行、profile実行、probe/fuzz/diff、YAML parser、SARIF/LSP）、実スナップショットの実時刻検証、adapter normalization、gate runtime。
 - Jev/他backendへの通信、response normalization、semantic screening。
 - gate runtime、population probe、fuzz generator、baseline diff、calibration。
 - 任意のprivate repositoryへの配置、commit、外部サービスでの作成・公開。

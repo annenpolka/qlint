@@ -92,6 +92,131 @@ export interface QuestionSuite {
     /** v0.1: exactly one binding per question in an executable suite. */
     bindings: BindingSpec[];
 }
+export interface PlanFieldProjection {
+    fieldId: Id;
+    pointer: string;
+    valueType: FieldSpec["valueType"];
+    nullable: boolean;
+    /** Targets are never projected; the type excludes that role. */
+    role: "evidence" | "policy" | "metadata";
+    sensitivity: FieldSpec["sensitivity"];
+    /** Redaction happens at the value boundary; the plan records the intent. */
+    handling: "verbatim";
+}
+export interface PlanGate {
+    purpose: GateSpec["purpose"];
+    questionId: Id;
+}
+export interface PlanQuestion {
+    questionId: Id;
+    atStage: Id;
+    profile: BindingSpec["profile"];
+    mode: QuestionSpec["mode"];
+    outputKind: OutputSpec["kind"];
+    gates: PlanGate[];
+    inputs: PlanFieldProjection[];
+    /** Approved policy documents travel separately from evidence inputs. */
+    policyRefs: PlanFieldProjection[];
+    redaction: {
+        policy: "explicit-projection-v0.1";
+        excludedFieldIds: Id[];
+        restrictedFieldIds: Id[];
+        note: string;
+    };
+    limits: {
+        maxBytes?: number;
+        maxTokens?: number;
+        rationale: string;
+    };
+}
+/** Immutable, digest-bound execution plan produced by `qlint inspect`. */
+export interface ExecutionPlan {
+    schemaVersion: "0.1";
+    kind: "qlint.execution-plan";
+    tool: {
+        name: "qlint";
+        version: string;
+    };
+    provider: {
+        name: "replay";
+        network: false;
+    };
+    suite: {
+        id: Id;
+        digest: string;
+    };
+    questions: PlanQuestion[];
+    requestCount: number;
+    maxRequests: number;
+    notes: string[];
+    /** sha256 over the plan content without this field. */
+    digest: string;
+}
+export interface ProjectedPayload {
+    questionId: Id;
+    atStage: Id;
+    inputs: Record<Id, Json>;
+    policyRefs: Record<Id, Json>;
+}
+export interface ProjectionProblem {
+    fieldId: Id;
+    kind: "type_mismatch" | "target_role" | "unknown_field";
+    message: string;
+}
+export type ProjectionOutcome = {
+    status: "projected";
+    payload: ProjectedPayload;
+    requestDigest: string;
+} | {
+    status: "abstained";
+    reason: "missing_input" | "null_value";
+    fieldIds: Id[];
+} | {
+    status: "invalid";
+    problems: ProjectionProblem[];
+};
+export interface RecordedResponse {
+    requestDigest: string;
+    /** The raw provider response, kept opaque in this bundle. */
+    response: Json;
+}
+export interface ReplayResult {
+    caseId: Id;
+    questionId: Id;
+    status: "replayed" | "abstained" | "invalid" | "not_run";
+    requestDigest?: string;
+    payload?: ProjectedPayload;
+    response?: Json;
+    reason?: string;
+    problems?: ProjectionProblem[];
+}
+export interface RunReport {
+    schemaVersion: "0.1";
+    kind: "qlint.run-report";
+    mode: "replay";
+    tool: {
+        name: "qlint";
+        version: string;
+    };
+    planDigest: string;
+    suite: {
+        id: Id;
+        digest: string;
+    };
+    results: ReplayResult[];
+    summary: {
+        cases: number;
+        questions: number;
+        replayed: number;
+        abstained: number;
+        invalid: number;
+        notRun: number;
+        requestsSent: number;
+    };
+    notExecuted: string[];
+    /** sha256 over the report content without this field. */
+    digest: string;
+}
 export type DiagnosticBasis = "static_proof" | "model_signal" | "empirical_witness";
 export type Severity = "error" | "warning" | "info";
 export type Evidence = {

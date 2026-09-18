@@ -28,6 +28,7 @@ const options = {
 const targets = [
   { schema: "schemas/question-suite.schema.json", typeName: "QuestionSuite", out: "tests/generated/question-suite.ts" },
   { schema: "schemas/diagnostic.schema.json", typeName: "Diagnostic", out: "tests/generated/diagnostic.ts" },
+  { schema: "schemas/execution-plan.schema.json", typeName: "ExecutionPlan", out: "tests/generated/execution-plan.ts" },
 ];
 
 mkdirSync(new URL("tests/generated/", root), { recursive: true });

@@ -2,7 +2,7 @@
 
 自然言語で定義された判定関数の **契約・観測可能性・backend適合性・挙動** を検査するための設計パッケージ。
 
-**状態: v0.1の設計 + オフライン参照実装。参照lint CLIは動くが、製品版qlintコマンドではない。** Jev API接続、semantic screening、probe、fuzzはまだない。名称は仮称。
+**状態: v0.1の設計 + オフライン参照実装。参照lint CLIと、digest固定のinspect/run（replay専用）は動くが、製品版qlintコマンドではない。** Jev API接続、semantic screening、probe、fuzzはまだない。名称は仮称。
 
 ## 読む場所
 
@@ -13,8 +13,10 @@
 | `src/contracts.ts` | QuestionSpec、StateContract、Binding、Diagnostic等 |
 | `schemas/` | QuestionSuiteとDiagnosticのJSON Schema（正本。`validation/generate_contract_assets.py`が生成） |
 | `src/static-checks.ts` | Schema検証済み入力への純粋な参照関係チェック |
-| `src/lint-suite.ts` / `src/cli.ts` | 参照lint CLIの検査順序と入出力 |
+| `src/lint-suite.ts` / `src/cli.ts` | 参照CLI（lint/inspect/run）の検査順序と入出力 |
 | `src/locate.ts` | JSON Pointer → 元ファイルの行・列の解決 |
+| `src/plan.ts` / `src/projection.ts` / `src/replay.ts` | 実行計画、per-question projection、replay runner |
+| `schemas/execution-plan.schema.json` | runが受理するplanの構造制約（digest付き） |
 | `rules/catalog.json` | 33ルール。実装状態付き |
 | `examples/` | 合成fixture。実データでも実モデル測定でもない |
 | `SOURCES.md` | 設計時に確認した公式資料 |
@@ -40,6 +42,20 @@ node dist/cli.js lint tests/fixtures/categorical.suite.json --capabilities tests
 - lintが実行する必須検査はlint phaseのものだけである。semantic screening等が未実行でもexit 0になり得るが、その事実はreportの `coverage` / `notExecuted` / `note` に必ず表示される（`docs/design-v0.1.md` section 8 の実装メモ）。
 - network、API key、model呼び出しは使わない。
 
+### inspect と run（replay専用）
+
+```sh
+node dist/cli.js inspect examples/scope-monitor.suite.json --out plan.json
+node dist/cli.js run plan.json --cases cases.jsonl --replay recorded.jsonl --format json
+```
+
+- `inspect`は質問ごとのprojectionを確定する。payloadに入るのはその質問の `inputs` と `policyRefs`（承認済み文書として別枠）だけで、他のfield（評価ラベルを含む）は `excludedFieldIds` に列挙される。input集合のunionを全質問へ流さない。
+- planは `sensitivity: restricted` のfieldをデフォルトで拒否し、`--allow-restricted` を要求する。`--max-requests` / `--max-bytes` / `--max-tokens` は根拠つきでplanに記録される。
+- planとrun reportは内容のSHA-256 digestを持ち、時刻や環境に依存しない。`run`はdigest不一致のplanを拒否する（exit 2）。
+- `run`はplanの全質問×全caseをprojectionし、`requestDigest = sha256(canonical({questionId, atStage, inputs, policyRefs}))` でrecorded responseを照合する。欠損/null/型はprojectionで検出し、欠損・nullはabstain、型違反はinvalidとして送信しない。
+- 記録が無いrequestは `not_run` のまま残し、exit 3（判定保留）。invalidがあればexit 1。全部replayできればexit 0で、同じ入力の2回実行はバイト単位で一致する。
+- adapter normalization、gate runtime、live providerは実装していない。runはnetworkへ出ない（`requestsSent: 0`）。
+
 ## オフラインの試験
 
 `dist/`は同梱済みなので、Node.jsから次をそのまま実行できる。
@@ -64,7 +80,7 @@ python3 -m pip install -r validation/requirements.txt
 python3 validation/check_contracts.py
 ```
 
-このbundleでの検証結果は静的テスト47件、Schema検証19件、型整合性検査、いずれも失敗0件。`validation/`に結果を収録。
+このbundleでの検証結果はテスト65件、Schema検証23件、型整合性検査、いずれも失敗0件。`validation/`に結果を収録。
 
 ## ライブラリ利用例
 
@@ -86,7 +102,7 @@ console.log(report.notExecuted);
 
 判定が役に立つかはFeature CompilerやWardenが決める。qlintは判定を実行してよいか、どの契約やテストで問題が見つかったか、何をまだ調べていないかを返す。
 
-`inspect/run/probe/fuzz/diff`等のCLIは設計書の提案であり、このbundleで実行できるのは `lint` だけである。
+`inspect`（replay用plan生成）と `run`（replay実行）は参照実装がある。`probe/fuzz/diff`とlive provider実行は設計書の提案であり、このbundleでは実行できない。
 
 ## ライセンス
 

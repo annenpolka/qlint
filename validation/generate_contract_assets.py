@@ -55,6 +55,13 @@ location=obj({'pointer':TXT,'file':TXT,'line':{'type':'integer','minimum':1},'co
 diag=obj({'ruleId':{'type':'string','pattern':'^Q(?:CT|SM|BE|PR|SU)[0-9]{3}$'},'questionId':ID,'severity':enum('error','warning','info'),'basis':enum('static_proof','model_signal','empirical_witness'),'message':TXT,'locations':arr(location,1),'evidence':arr(evidence,1)},('questionId',))
 dump('schemas/diagnostic.schema.json',{'$schema':'https://json-schema.org/draft/2020-12/schema','title':'qlint Diagnostic v0.1',**diag})
 
+DIGEST={'type':'string','pattern':'^sha256:[0-9a-f]{64}$'}
+plan_field=obj({'fieldId':ID,'pointer':PTR,'valueType':enum('string','number','integer','boolean','array','object'),'nullable':{'type':'boolean'},'role':enum('evidence','policy','metadata'),'sensitivity':enum('public','internal','restricted'),'handling':{'const':'verbatim'}})
+plan_gate=obj({'purpose':enum('applicability','evidence'),'questionId':ID})
+plan_question=obj({'questionId':ID,'atStage':ID,'profile':enum('feature','monitor','router','judge'),'mode':enum('extract','interpret','predict'),'outputKind':enum('boolean','categorical','ordinal'),'gates':arr(REF('planGate')),'inputs':arr(REF('planField'),1),'policyRefs':arr(REF('planField')),'redaction':obj({'policy':{'const':'explicit-projection-v0.1'},'excludedFieldIds':arr(ID,0,True),'restrictedFieldIds':arr(ID,0,True),'note':TXT}),'limits':obj({'maxBytes':{'type':'integer','minimum':1},'maxTokens':{'type':'integer','minimum':1},'rationale':TXT},('maxBytes','maxTokens'))})
+plan=obj({'schemaVersion':{'const':'0.1'},'kind':{'const':'qlint.execution-plan'},'tool':obj({'name':{'const':'qlint'},'version':TXT}),'provider':obj({'name':{'const':'replay'},'network':{'const':False}}),'suite':obj({'id':ID,'digest':DIGEST}),'questions':arr(REF('planQuestion'),1),'requestCount':{'type':'integer','minimum':1},'maxRequests':{'type':'integer','minimum':1},'notes':arr(TXT,0),'digest':DIGEST})
+dump('schemas/execution-plan.schema.json',{'$schema':'https://json-schema.org/draft/2020-12/schema','title':'qlint ExecutionPlan v0.1',**plan,'$defs':{'planField':plan_field,'planGate':plan_gate,'planQuestion':plan_question}})
+
 def f(id,pointer,stage='start',role='evidence',typ='string',derived=()):
     return {'id':id,'pointer':pointer,'valueType':typ,'nullable':False,'availableFrom':stage,'role':role,'derivedFrom':list(derived),'sensitivity':'internal'}
 base={

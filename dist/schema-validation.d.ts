@@ -7,10 +7,12 @@ export interface SchemaIssue {
 export interface SchemaValidators {
     suite(data: unknown): SchemaIssue[];
     diagnostic(data: unknown): SchemaIssue[];
+    executionPlan(data: unknown): SchemaIssue[];
 }
 export interface SchemaSources {
     suite: object;
     diagnostic: object;
+    executionPlan: object;
 }
 /**
  * Compiles the shipped schemas (Draft 2020-12). `strict` is off because the

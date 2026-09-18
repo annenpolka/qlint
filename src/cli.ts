@@ -1,54 +1,53 @@
 #!/usr/bin/env node
 /**
- * qlint reference CLI — static lint only.
+ * qlint reference CLI — static lint (Stage 1) plus inspect/run (Stage 2).
  *
  * Deliberately small: argument parsing, file I/O, schema loading, and
- * rendering. All checking logic lives in lint-suite.ts / static-checks.ts.
- * Exit codes follow docs/design-v0.1.md; see USAGE for the lint-specific
- * interpretation recorded in that document.
+ * rendering. Checking logic lives in lint-suite.ts / static-checks.ts,
+ * planning in plan.ts, projection in projection.ts, replay in replay.ts.
+ * Exit codes follow docs/design-v0.1.md; see USAGE.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { parseBackendCapabilities } from "./capabilities.js";
-import type { BackendCapabilities } from "./contracts.js";
+import type { BackendCapabilities, ExecutionPlan, Json, QuestionSuite, RecordedResponse, RunReport } from "./contracts.js";
 import type { LintReport } from "./lint-suite.js";
 import { InternalLintError, LINT_SCOPE, lintSuiteSource } from "./lint-suite.js";
+import { buildPlan, PlanError, planDigest } from "./plan.js";
+import type { ReplayCase } from "./replay.js";
+import { ReplayError, replayPlan, runReportDigest } from "./replay.js";
+import type { SchemaValidators } from "./schema-validation.js";
 import { createSchemaValidators, loadSchemaSync } from "./schema-validation.js";
 
-export const USAGE = `qlint — question contract checker (reference static lint)
+export const USAGE = `qlint — question contract checker (reference implementation)
 
 Usage:
   qlint lint <suite.json> [--capabilities <caps.json>] [--format text|json]
+  qlint inspect <suite.json> [--out <plan.json>] [--format text|json]
+                 [--max-requests N] [--max-bytes N] [--max-tokens N] [--allow-restricted]
+  qlint run <plan.json> --cases <cases.jsonl> --replay <recorded.jsonl>
+             [--out <report.json>] [--format text|json]
   qlint --help
   qlint --version
 
 Exit codes:
-  0  every check lint performs completed and found no violations
+  0  every check the command performs completed and found no violations
   1  the input violated the suite contract or the JSON Schema
-  2  usage, I/O, or tool-configuration failure
-  3  reserved for profile runs whose required checks were not completed (lint never uses it)
+  2  usage, I/O, plan, or tool-configuration failure (including digest mismatch)
+  3  run could not complete for lack of recorded evidence (results left not_run)
 
 lint runs JSON Schema validation and cross-reference checks only.
 Semantic screening, dataset probes, metamorphic tests, fuzzing, and calibration
 are NOT run; the report lists them under "not run" and never presents a clean
-static lint as semantic approval.`;
+static lint as semantic approval.
+inspect writes a digest-bound execution plan; it never contacts a provider.
+run executes a plan against recorded responses only; live providers are not
+implemented in this bundle.`;
 
 export interface CliStreams {
   stdout(text: string): void;
   stderr(text: string): void;
 }
-
-interface LintOptions {
-  file: string;
-  capabilitiesPath?: string;
-  format: "text" | "json";
-}
-
-type ParsedArgs =
-  | { kind: "lint"; options: LintOptions }
-  | { kind: "help" }
-  | { kind: "version" }
-  | { kind: "error"; message: string };
 
 class CliError extends Error {}
 
@@ -63,7 +62,7 @@ function readVersion(): string {
       return (parsed as { version: string }).version;
     }
   } catch {
-    // Fall through to the placeholder; the version is informative, not a check.
+    // The version is informative, not a check.
   }
   return "0.0.0";
 }
@@ -82,56 +81,173 @@ function loadCatalogRuleIds(): string[] {
   return ids;
 }
 
-function parseArgs(argv: string[]): ParsedArgs {
+function loadValidators(): SchemaValidators {
+  return createSchemaValidators({
+    suite: loadSchemaSync(new URL("../schemas/question-suite.schema.json", import.meta.url)),
+    diagnostic: loadSchemaSync(new URL("../schemas/diagnostic.schema.json", import.meta.url)),
+    executionPlan: loadSchemaSync(new URL("../schemas/execution-plan.schema.json", import.meta.url)),
+  });
+}
+
+const VALUE_FLAGS = new Set([
+  "--out", "--format", "--capabilities", "--max-requests", "--max-bytes", "--max-tokens",
+  "--cases", "--replay", "--allow-provider",
+]);
+const BOOLEAN_FLAGS = new Set(["--help", "-h", "--version", "-v", "--allow-restricted"]);
+
+interface ParsedArgv {
+  flags: Map<string, string>;
+  booleans: Set<string>;
+  positionals: string[];
+}
+
+type Command =
+  | { kind: "help" }
+  | { kind: "version" }
+  | { kind: "lint"; file: string; capabilitiesPath?: string; format: "text" | "json" }
+  | {
+      kind: "inspect";
+      file: string;
+      out?: string;
+      format: "text" | "json";
+      maxRequests?: number;
+      maxBytes?: number;
+      maxTokens?: number;
+      allowRestricted: boolean;
+    }
+  | { kind: "run"; planPath: string; casesPath: string; replayPath: string; out?: string; format: "text" | "json" }
+  | { kind: "error"; message: string };
+
+function parseArgv(argv: string[]): ParsedArgv | { error: string } {
+  const flags = new Map<string, string>();
+  const booleans = new Set<string>();
   const positionals: string[] = [];
-  let capabilitiesPath: string | undefined;
-  let format: LintOptions["format"] = "text";
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]!;
-    if (arg === "--help" || arg === "-h") return { kind: "help" };
-    if (arg === "--version" || arg === "-v") return { kind: "version" };
-    if (arg === "--capabilities") {
+    if (BOOLEAN_FLAGS.has(arg)) {
+      booleans.add(arg);
+      continue;
+    }
+    if (VALUE_FLAGS.has(arg)) {
       const value = argv[index + 1];
-      if (value === undefined) return { kind: "error", message: "--capabilities requires a file path" };
-      capabilitiesPath = value;
+      if (value === undefined || value.startsWith("--")) return { error: `${arg} requires a value` };
+      flags.set(arg, value);
       index += 1;
       continue;
     }
-    if (arg === "--format") {
-      const value = argv[index + 1];
-      if (value !== "text" && value !== "json") return { kind: "error", message: '--format must be "text" or "json"' };
-      format = value;
-      index += 1;
-      continue;
-    }
-    if (arg.startsWith("-")) return { kind: "error", message: `unknown option: ${arg}` };
+    if (arg.startsWith("-")) return { error: `unknown option: ${arg}` };
     positionals.push(arg);
   }
-  const command = positionals[0];
-  if (command === undefined) return { kind: "error", message: "missing command" };
-  if (command !== "lint") return { kind: "error", message: `unknown command: ${command}` };
-  const file = positionals[1];
-  if (file === undefined) return { kind: "error", message: "lint requires a suite file path" };
-  if (positionals.length > 2) return { kind: "error", message: `unexpected argument: ${positionals[2]}` };
-  return {
-    kind: "lint",
-    options: { file, ...(capabilitiesPath === undefined ? {} : { capabilitiesPath }), format },
-  };
+  return { flags, booleans, positionals };
+}
+
+function checkFlags(parsed: ParsedArgv, allowedFlags: string[], allowedBooleans: string[]): string | undefined {
+  for (const flag of parsed.flags.keys()) {
+    if (!allowedFlags.includes(flag)) return `${flag} is not valid for ${parsed.positionals[0] ?? "this command"}`;
+  }
+  for (const flag of parsed.booleans) {
+    if (flag === "--help" || flag === "-h" || flag === "--version" || flag === "-v") continue;
+    if (!allowedBooleans.includes(flag)) return `${flag} is not valid for ${parsed.positionals[0] ?? "this command"}`;
+  }
+  return undefined;
+}
+
+function parseFormat(parsed: ParsedArgv): "text" | "json" | string {
+  const value = parsed.flags.get("--format");
+  if (value === undefined) return "text";
+  if (value !== "text" && value !== "json") return '--format must be "text" or "json"';
+  return value;
+}
+
+function positiveInteger(parsed: ParsedArgv, flag: string): number | undefined | string {
+  const value = parsed.flags.get(flag);
+  if (value === undefined) return undefined;
+  if (!/^[1-9]\d*$/.test(value)) return `${flag} must be a positive integer`;
+  return Number(value);
+}
+
+function parseArgs(argv: string[]): Command {
+  const parsed = parseArgv(argv);
+  if ("error" in parsed) return { kind: "error", message: parsed.error };
+  if (parsed.booleans.has("--help") || parsed.booleans.has("-h")) return { kind: "help" };
+  if (parsed.booleans.has("--version") || parsed.booleans.has("-v")) return { kind: "version" };
+
+  const [commandName, file, extra] = parsed.positionals;
+  if (commandName === undefined) return { kind: "error", message: "missing command" };
+  if (file === undefined) return { kind: "error", message: `${commandName} requires a file path` };
+  if (extra !== undefined) return { kind: "error", message: `unexpected argument: ${extra}` };
+
+  if (commandName === "lint") {
+    const flagError = checkFlags(parsed, ["--format", "--capabilities"], []);
+    if (flagError) return { kind: "error", message: flagError };
+    const format = parseFormat(parsed);
+    if (format !== "text" && format !== "json") return { kind: "error", message: format };
+    const capabilitiesPath = parsed.flags.get("--capabilities");
+    return { kind: "lint", file, ...(capabilitiesPath === undefined ? {} : { capabilitiesPath }), format };
+  }
+
+  if (commandName === "inspect") {
+    const flagError = checkFlags(parsed, ["--out", "--format", "--max-requests", "--max-bytes", "--max-tokens"], ["--allow-restricted"]);
+    if (flagError) return { kind: "error", message: flagError };
+    const format = parseFormat(parsed);
+    if (format !== "text" && format !== "json") return { kind: "error", message: format };
+    const maxRequests = positiveInteger(parsed, "--max-requests");
+    const maxBytes = positiveInteger(parsed, "--max-bytes");
+    const maxTokens = positiveInteger(parsed, "--max-tokens");
+    for (const value of [maxRequests, maxBytes, maxTokens]) {
+      if (typeof value === "string") return { kind: "error", message: value };
+    }
+    const out = parsed.flags.get("--out");
+    return {
+      kind: "inspect",
+      file,
+      format,
+      allowRestricted: parsed.booleans.has("--allow-restricted"),
+      ...(out === undefined ? {} : { out }),
+      ...(typeof maxRequests === "number" ? { maxRequests } : {}),
+      ...(typeof maxBytes === "number" ? { maxBytes } : {}),
+      ...(typeof maxTokens === "number" ? { maxTokens } : {}),
+    };
+  }
+
+  if (commandName === "run") {
+    const flagError = checkFlags(parsed, ["--out", "--format", "--cases", "--replay", "--allow-provider"], []);
+    if (flagError) return { kind: "error", message: flagError };
+    if (parsed.flags.has("--allow-provider")) {
+      return { kind: "error", message: "live providers are not implemented in this bundle; use --replay <recorded.jsonl>" };
+    }
+    const format = parseFormat(parsed);
+    if (format !== "text" && format !== "json") return { kind: "error", message: format };
+    const casesPath = parsed.flags.get("--cases");
+    const replayPath = parsed.flags.get("--replay");
+    if (casesPath === undefined) return { kind: "error", message: "run requires --cases <cases.jsonl>" };
+    if (replayPath === undefined) return { kind: "error", message: "run requires --replay <recorded.jsonl>" };
+    const out = parsed.flags.get("--out");
+    return { kind: "run", planPath: file, casesPath, replayPath, format, ...(out === undefined ? {} : { out }) };
+  }
+
+  return { kind: "error", message: `unknown command: ${commandName}` };
+}
+
+function readText(path: string, what: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (error) {
+    throw new CliError(`cannot read ${what} ${path}: ${errorMessage(error)}`);
+  }
+}
+
+function readJson(path: string, what: string): unknown {
+  const source = readText(path, what);
+  try {
+    return JSON.parse(source);
+  } catch (error) {
+    throw new CliError(`${what} ${path} is not valid JSON: ${errorMessage(error)}`);
+  }
 }
 
 function readCapabilities(path: string): BackendCapabilities {
-  let source: string;
-  try {
-    source = readFileSync(path, "utf8");
-  } catch (error) {
-    throw new CliError(`cannot read capabilities file ${path}: ${errorMessage(error)}`);
-  }
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(source);
-  } catch (error) {
-    throw new CliError(`capabilities file ${path} is not valid JSON: ${errorMessage(error)}`);
-  }
+  const parsed = readJson(path, "capabilities file");
   try {
     return parseBackendCapabilities(parsed);
   } catch (error) {
@@ -139,7 +255,54 @@ function readCapabilities(path: string): BackendCapabilities {
   }
 }
 
-function renderText(report: LintReport): string {
+function parseJsonLines(source: string, what: string, parseLine: (value: unknown, line: number) => void): void {
+  source.split("\n").forEach((line, index) => {
+    const trimmed = line.trim();
+    if (trimmed === "") return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (error) {
+      throw new CliError(`${what} line ${index + 1} is not valid JSON: ${errorMessage(error)}`);
+    }
+    parseLine(parsed, index + 1);
+  });
+}
+
+function readCases(path: string): ReplayCase[] {
+  const cases: ReplayCase[] = [];
+  parseJsonLines(readText(path, "cases file"), "cases file", (value, line) => {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      throw new CliError(`cases file line ${line} must be a JSON object`);
+    }
+    const record = value as Record<string, unknown>;
+    if (typeof record.caseId !== "string" || record.caseId === "") {
+      throw new CliError(`cases file line ${line} needs a non-empty string caseId`);
+    }
+    if (!("state" in record)) throw new CliError(`cases file line ${line} needs a state value`);
+    cases.push({ caseId: record.caseId, state: record.state as Json });
+  });
+  if (cases.length === 0) throw new CliError("cases file contains no cases");
+  return cases;
+}
+
+function readRecordings(path: string): RecordedResponse[] {
+  const recordings: RecordedResponse[] = [];
+  parseJsonLines(readText(path, "recorded responses file"), "recorded responses file", (value, line) => {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      throw new CliError(`recorded responses file line ${line} must be a JSON object`);
+    }
+    const record = value as Record<string, unknown>;
+    if (typeof record.requestDigest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(record.requestDigest)) {
+      throw new CliError(`recorded responses file line ${line} needs a sha256 requestDigest`);
+    }
+    if (!("response" in record)) throw new CliError(`recorded responses file line ${line} needs a response`);
+    recordings.push({ requestDigest: record.requestDigest, response: record.response as Json });
+  });
+  return recordings;
+}
+
+function renderLintText(report: LintReport): string {
   const lines: string[] = [];
   lines.push(`qlint ${report.version} — ${LINT_SCOPE} (schema + cross-reference checks; no network)`);
   if (report.file !== null) lines.push(`file: ${report.file}`);
@@ -168,45 +331,134 @@ function renderText(report: LintReport): string {
   return lines.join("\n") + "\n";
 }
 
+function renderPlanText(plan: ExecutionPlan, outPath: string | undefined): string {
+  const lines: string[] = [];
+  lines.push(`qlint ${plan.tool.version} — execution plan (provider: ${plan.provider.name}; network: ${plan.provider.network ? "yes" : "no"})`);
+  lines.push(`suite: ${plan.suite.id} (${plan.suite.digest})`);
+  lines.push(`requests: ${plan.requestCount} (maxRequests ${plan.maxRequests})`);
+  lines.push(`redaction: ${plan.questions[0]?.redaction.policy ?? "explicit-projection-v0.1"}`);
+  for (const question of plan.questions) {
+    lines.push(`  ${question.questionId} @ ${question.atStage} [${question.profile}, ${question.mode}, ${question.outputKind}]`);
+    lines.push(`    inputs: ${question.inputs.map(field => field.fieldId).join(", ") || "(none)"}`);
+    lines.push(`    policyRefs: ${question.policyRefs.map(field => field.fieldId).join(", ") || "(none)"}`);
+    lines.push(`    excluded: ${question.redaction.excludedFieldIds.join(", ") || "(none)"}`);
+    lines.push(`    restricted: ${question.redaction.restrictedFieldIds.join(", ") || "none"}`);
+    lines.push(`    limits: ${question.limits.rationale}`);
+  }
+  for (const note of plan.notes) lines.push(`note: ${note}`);
+  lines.push(`plan digest: ${plan.digest}`);
+  if (outPath !== undefined) lines.push(`written: ${outPath}`);
+  return lines.join("\n") + "\n";
+}
+
+function renderRunText(report: RunReport): string {
+  const lines: string[] = [];
+  lines.push(`qlint ${report.tool.version} — run (mode: ${report.mode}; provider: replay; network: no)`);
+  lines.push(`plan: ${report.planDigest}`);
+  lines.push(`suite: ${report.suite.id} (${report.suite.digest})`);
+  lines.push(`cases: ${report.summary.cases}, questions: ${report.summary.questions}`);
+  lines.push(`results: ${report.summary.replayed} replayed, ${report.summary.abstained} abstained, ${report.summary.invalid} invalid, ${report.summary.notRun} not run`);
+  for (const result of report.results) {
+    if (result.status === "replayed") continue;
+    lines.push(`  ${result.caseId} ${result.questionId} ${result.status}${result.reason === undefined ? "" : `: ${result.reason}`}`);
+  }
+  for (const item of report.notExecuted) lines.push(`not run: ${item}`);
+  lines.push(`report digest: ${report.digest}`);
+  return lines.join("\n") + "\n";
+}
+
+function exitCodeForRun(report: RunReport): number {
+  if (report.summary.invalid > 0) return 1;
+  if (report.summary.notRun > 0) return 3;
+  return 0;
+}
+
 export function run(argv: string[], streams: CliStreams): number {
-  const parsedArgs = parseArgs(argv);
-  if (parsedArgs.kind === "help") {
+  const command = parseArgs(argv);
+  if (command.kind === "help") {
     streams.stdout(USAGE + "\n");
     return 0;
   }
-  if (parsedArgs.kind === "version") {
+  if (command.kind === "version") {
     streams.stdout(readVersion() + "\n");
     return 0;
   }
-  if (parsedArgs.kind === "error") {
-    streams.stderr(`qlint: ${parsedArgs.message}\n\n${USAGE}\n`);
+  if (command.kind === "error") {
+    streams.stderr(`qlint: ${command.message}\n\n${USAGE}\n`);
     return 2;
   }
-  const { file, capabilitiesPath, format } = parsedArgs.options;
+
   try {
-    const capabilities = capabilitiesPath === undefined ? undefined : readCapabilities(capabilitiesPath);
-    let source: string;
-    try {
-      source = readFileSync(file, "utf8");
-    } catch (error) {
-      throw new CliError(`cannot read ${file}: ${errorMessage(error)}`);
+    if (command.kind === "lint") {
+      const capabilities = command.capabilitiesPath === undefined ? undefined : readCapabilities(command.capabilitiesPath);
+      const source = readText(command.file, "suite file");
+      const report = lintSuiteSource({
+        source,
+        file: command.file,
+        ...(capabilities === undefined ? {} : { capabilities }),
+        catalogRuleIds: loadCatalogRuleIds(),
+        validators: loadValidators(),
+        version: readVersion(),
+      });
+      streams.stdout(command.format === "json" ? JSON.stringify(report, null, 2) + "\n" : renderLintText(report));
+      return report.summary.errors > 0 ? 1 : 0;
     }
-    const validators = createSchemaValidators({
-      suite: loadSchemaSync(new URL("../schemas/question-suite.schema.json", import.meta.url)),
-      diagnostic: loadSchemaSync(new URL("../schemas/diagnostic.schema.json", import.meta.url)),
-    });
-    const report = lintSuiteSource({
-      source,
-      file,
-      ...(capabilities === undefined ? {} : { capabilities }),
-      catalogRuleIds: loadCatalogRuleIds(),
-      validators,
-      version: readVersion(),
-    });
-    streams.stdout(format === "json" ? JSON.stringify(report, null, 2) + "\n" : renderText(report));
-    return report.summary.errors > 0 ? 1 : 0;
+
+    if (command.kind === "inspect") {
+      const validators = loadValidators();
+      const source = readText(command.file, "suite file");
+      const lint = lintSuiteSource({
+        source,
+        file: command.file,
+        catalogRuleIds: loadCatalogRuleIds(),
+        validators,
+        version: readVersion(),
+      });
+      if (lint.summary.errors > 0) {
+        streams.stdout(command.format === "json" ? JSON.stringify(lint, null, 2) + "\n" : renderLintText(lint));
+        return 1;
+      }
+      const plan = buildPlan(JSON.parse(source) as QuestionSuite, {
+        version: readVersion(),
+        ...(command.maxRequests === undefined ? {} : { maxRequests: command.maxRequests }),
+        ...(command.maxBytes === undefined ? {} : { maxBytes: command.maxBytes }),
+        ...(command.maxTokens === undefined ? {} : { maxTokens: command.maxTokens }),
+        ...(command.allowRestricted ? { allowRestricted: true } : {}),
+      });
+      const issues = validators.executionPlan(plan);
+      if (issues.length > 0) {
+        throw new InternalLintError(`generated plan does not satisfy schemas/execution-plan.schema.json: ${issues.map(issue => issue.message).join("; ")}`);
+      }
+      if (command.out !== undefined) {
+        writeFileSync(command.out, JSON.stringify(plan, null, 2) + "\n");
+      }
+      streams.stdout(command.format === "json" ? JSON.stringify(plan, null, 2) + "\n" : renderPlanText(plan, command.out));
+      return 0;
+    }
+
+    // command.kind === "run"
+    const validators = loadValidators();
+    const plan = readJson(command.planPath, "plan file") as ExecutionPlan;
+    const planIssues = validators.executionPlan(plan);
+    if (planIssues.length > 0) {
+      throw new CliError(`plan ${command.planPath} is not a valid execution plan: ${planIssues.map(issue => `${issue.pointer} ${issue.message}`).join("; ")}`);
+    }
+    if (plan.digest !== planDigest(plan)) {
+      throw new CliError(`plan digest mismatch: file has ${plan.digest}, content computes ${planDigest(plan)}`);
+    }
+    const cases = readCases(command.casesPath);
+    const recordings = readRecordings(command.replayPath);
+    const report = replayPlan(plan, cases, recordings, readVersion());
+    if (report.digest !== runReportDigest(report)) {
+      throw new InternalLintError("replay report digest does not match its content");
+    }
+    if (command.out !== undefined) {
+      writeFileSync(command.out, JSON.stringify(report, null, 2) + "\n");
+    }
+    streams.stdout(command.format === "json" ? JSON.stringify(report, null, 2) + "\n" : renderRunText(report));
+    return exitCodeForRun(report);
   } catch (error) {
-    if (error instanceof CliError || error instanceof InternalLintError) {
+    if (error instanceof CliError || error instanceof InternalLintError || error instanceof PlanError || error instanceof ReplayError) {
       streams.stderr(`qlint: ${errorMessage(error)}\n`);
       return 2;
     }

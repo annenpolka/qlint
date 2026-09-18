@@ -2,291 +2,399 @@ TAP version 13
 # Subtest: a clean suite exits 0 and the text report discloses what did not run
 ok 1 - a clean suite exits 0 and the text report discloses what did not run
   ---
-  duration_ms: 108.218
+  duration_ms: 104.241084
   type: 'test'
   ...
 # Subtest: --format json emits the full coverage map
 ok 2 - --format json emits the full coverage map
   ---
-  duration_ms: 90.705125
+  duration_ms: 102.38125
   type: 'test'
   ...
 # Subtest: a reference violation exits 1 and points at the offending line
 ok 3 - a reference violation exits 1 and points at the offending line
   ---
-  duration_ms: 88.773917
+  duration_ms: 103.630583
   type: 'test'
   ...
 # Subtest: a schema violation exits 1 and skips cross-reference checks
 ok 4 - a schema violation exits 1 and skips cross-reference checks
   ---
-  duration_ms: 87.745583
+  duration_ms: 103.710833
   type: 'test'
   ...
 # Subtest: malformed JSON exits 1 with a located diagnostic
 ok 5 - malformed JSON exits 1 with a located diagnostic
   ---
-  duration_ms: 87.575375
+  duration_ms: 103.225
   type: 'test'
   ...
 # Subtest: I/O and usage failures exit 2
 ok 6 - I/O and usage failures exit 2
   ---
-  duration_ms: 185.247417
+  duration_ms: 214.586792
   type: 'test'
   ...
 # Subtest: --help and --version exit 0
 ok 7 - --help and --version exit 0
   ---
-  duration_ms: 122.673583
+  duration_ms: 141.434083
   type: 'test'
   ...
 # Subtest: capability checks change the outcome only when a profile is supplied
 ok 8 - capability checks change the outcome only when a profile is supplied
   ---
-  duration_ms: 180.302709
+  duration_ms: 208.557666
   type: 'test'
   ...
 # Subtest: malformed capability profiles are a tool-configuration failure (exit 2)
 ok 9 - malformed capability profiles are a tool-configuration failure (exit 2)
   ---
-  duration_ms: 61.993458
+  duration_ms: 70.051709
   type: 'test'
   ...
 # Subtest: lint does not modify the input file
 ok 10 - lint does not modify the input file
   ---
-  duration_ms: 87.76025
+  duration_ms: 104.043417
+  type: 'test'
+  ...
+# Subtest: canonical JSON sorts object keys and keeps array order
+ok 11 - canonical JSON sorts object keys and keeps array order
+  ---
+  duration_ms: 1.432792
+  type: 'test'
+  ...
+# Subtest: digests are independent of key order
+ok 12 - digests are independent of key order
+  ---
+  duration_ms: 0.112792
+  type: 'test'
+  ...
+# Subtest: non-JSON values are rejected rather than silently dropped
+ok 13 - non-JSON values are rejected rather than silently dropped
+  ---
+  duration_ms: 0.193125
+  type: 'test'
+  ...
+# Subtest: inspect displays request count, fields, provider, redaction, and limit rationale
+ok 14 - inspect displays request count, fields, provider, redaction, and limit rationale
+  ---
+  duration_ms: 107.02325
+  type: 'test'
+  ...
+# Subtest: the generated plan satisfies the ExecutionPlan schema and verifies its digest
+ok 15 - the generated plan satisfies the ExecutionPlan schema and verifies its digest
+  ---
+  duration_ms: 106.774041
+  type: 'test'
+  ...
+# Subtest: inspect refuses a suite whose lint has errors (target leak)
+ok 16 - inspect refuses a suite whose lint has errors (target leak)
+  ---
+  duration_ms: 106.331334
+  type: 'test'
+  ...
+# Subtest: restricted fields require explicit approval
+ok 17 - restricted fields require explicit approval
+  ---
+  duration_ms: 211.833625
+  type: 'test'
+  ...
+# Subtest: run detects plan edits through the digest
+ok 18 - run detects plan edits through the digest
+  ---
+  duration_ms: 206.23825
+  type: 'test'
+  ...
+# Subtest: replay reproduces recorded responses without network and exits 3 without them
+ok 19 - replay reproduces recorded responses without network and exits 3 without them
+  ---
+  duration_ms: 415.207625
+  type: 'test'
+  ...
+# Subtest: live providers are rejected with a clear message
+ok 20 - live providers are rejected with a clear message
+  ---
+  duration_ms: 72.567625
   type: 'test'
   ...
 # Subtest: a valid fixture passes every executed rule and discloses what was not run
-ok 11 - a valid fixture passes every executed rule and discloses what was not run
+ok 21 - a valid fixture passes every executed rule and discloses what was not run
   ---
-  duration_ms: 3.554541
+  duration_ms: 3.576666
   type: 'test'
   ...
 # Subtest: a reference violation points at the exact input array item
-ok 12 - a reference violation points at the exact input array item
+ok 22 - a reference violation points at the exact input array item
   ---
-  duration_ms: 1.075666
+  duration_ms: 1.426958
   type: 'test'
   ...
 # Subtest: schema violations are reported and cross-reference checks are marked not_run
-ok 13 - schema violations are reported and cross-reference checks are marked not_run
+ok 23 - schema violations are reported and cross-reference checks are marked not_run
   ---
-  duration_ms: 0.419416
+  duration_ms: 0.520583
   type: 'test'
   ...
 # Subtest: malformed JSON yields a located QCT001 diagnostic
-ok 14 - malformed JSON yields a located QCT001 diagnostic
+ok 24 - malformed JSON yields a located QCT001 diagnostic
   ---
-  duration_ms: 0.259541
+  duration_ms: 0.268458
   type: 'test'
   ...
 # Subtest: capability checks run only when a capability profile is provided
-ok 15 - capability checks run only when a capability profile is provided
+ok 25 - capability checks run only when a capability profile is provided
   ---
-  duration_ms: 0.718792
+  duration_ms: 0.42225
   type: 'test'
   ...
 # Subtest: every emitted diagnostic satisfies the Diagnostic schema
-ok 16 - every emitted diagnostic satisfies the Diagnostic schema
+ok 26 - every emitted diagnostic satisfies the Diagnostic schema
   ---
-  duration_ms: 0.478125
+  duration_ms: 0.43425
   type: 'test'
   ...
 # Subtest: object members and array items resolve to exact positions
-ok 17 - object members and array items resolve to exact positions
+ok 27 - object members and array items resolve to exact positions
   ---
-  duration_ms: 2.783709
+  duration_ms: 1.501667
   type: 'test'
   ...
 # Subtest: escaped key segments use JSON Pointer escaping
-ok 18 - escaped key segments use JSON Pointer escaping
+ok 28 - escaped key segments use JSON Pointer escaping
   ---
-  duration_ms: 0.149209
+  duration_ms: 0.130291
   type: 'test'
   ...
 # Subtest: nearest falls back to the containing value, then to the root
-ok 19 - nearest falls back to the containing value, then to the root
+ok 29 - nearest falls back to the containing value, then to the root
   ---
-  duration_ms: 0.116792
+  duration_ms: 0.108542
   type: 'test'
   ...
 # Subtest: the scanner reports where malformed text stops
-ok 20 - the scanner reports where malformed text stops
+ok 30 - the scanner reports where malformed text stops
   ---
-  duration_ms: 0.220084
+  duration_ms: 0.208917
   type: 'test'
   ...
 # Subtest: positionAtOffset counts from one and clamps to the source
-ok 21 - positionAtOffset counts from one and clamps to the source
+ok 31 - positionAtOffset counts from one and clamps to the source
   ---
-  duration_ms: 0.078625
+  duration_ms: 0.07475
+  type: 'test'
+  ...
+# Subtest: each question projects only its own inputs, never the union
+ok 32 - each question projects only its own inputs, never the union
+  ---
+  duration_ms: 1.542958
+  type: 'test'
+  ...
+# Subtest: policy references travel separately from evidence inputs
+ok 33 - policy references travel separately from evidence inputs
+  ---
+  duration_ms: 0.340542
+  type: 'test'
+  ...
+# Subtest: missing inputs abstain and nulls abstain unless declared nullable
+ok 34 - missing inputs abstain and nulls abstain unless declared nullable
+  ---
+  duration_ms: 0.119083
+  type: 'test'
+  ...
+# Subtest: type violations stop the request instead of being smoothed over
+ok 35 - type violations stop the request instead of being smoothed over
+  ---
+  duration_ms: 0.056625
+  type: 'test'
+  ...
+# Subtest: a hand-made plan that projects a target is rejected at projection time
+ok 36 - a hand-made plan that projects a target is rejected at projection time
+  ---
+  duration_ms: 0.067042
+  type: 'test'
+  ...
+# Subtest: pointer resolution handles escaping, arrays, and missing paths
+ok 37 - pointer resolution handles escaping, arrays, and missing paths
+  ---
+  duration_ms: 0.128083
+  type: 'test'
+  ...
+# Subtest: replay leaves uncovered requests not_run and records payloads
+ok 38 - replay leaves uncovered requests not_run and records payloads
+  ---
+  duration_ms: 0.218167
+  type: 'test'
+  ...
+# Subtest: replay refuses duplicate recordings for one request digest
+ok 39 - replay refuses duplicate recordings for one request digest
+  ---
+  duration_ms: 0.242291
   type: 'test'
   ...
 # Subtest: valid fixture has no cross-reference violations; semantics explicitly not checked
-ok 22 - valid fixture has no cross-reference violations; semantics explicitly not checked
+ok 40 - valid fixture has no cross-reference violations; semantics explicitly not checked
   ---
-  duration_ms: 2.760541
+  duration_ms: 2.374917
   type: 'test'
   ...
 # Subtest: unknown input reference
-ok 23 - unknown input reference
+ok 41 - unknown input reference
   ---
-  duration_ms: 0.298542
+  duration_ms: 0.232292
   type: 'test'
   ...
 # Subtest: stage cycle
-ok 24 - stage cycle
+ok 42 - stage cycle
   ---
-  duration_ms: 0.130875
+  duration_ms: 0.123459
   type: 'test'
   ...
 # Subtest: future input is not available during execution
-ok 25 - future input is not available during execution
+ok 43 - future input is not available during execution
   ---
-  duration_ms: 0.137625
+  duration_ms: 0.127292
   type: 'test'
   ...
 # Subtest: direct evaluation label leakage
-ok 26 - direct evaluation label leakage
+ok 44 - direct evaluation label leakage
   ---
-  duration_ms: 0.118708
+  duration_ms: 0.121417
   type: 'test'
   ...
 # Subtest: derived label leakage
-ok 27 - derived label leakage
+ok 45 - derived label leakage
   ---
-  duration_ms: 0.128667
+  duration_ms: 0.119292
   type: 'test'
   ...
 # Subtest: lineage availability cannot be erased by an earlier declared timestamp
-ok 28 - lineage availability cannot be erased by an earlier declared timestamp
+ok 46 - lineage availability cannot be erased by an earlier declared timestamp
   ---
-  duration_ms: 0.103584
+  duration_ms: 0.099625
   type: 'test'
   ...
 # Subtest: non-boolean gate
-ok 29 - non-boolean gate
+ok 47 - non-boolean gate
   ---
-  duration_ms: 0.109292
+  duration_ms: 0.109125
   type: 'test'
   ...
 # Subtest: gate thresholds overlap
-ok 30 - gate thresholds overlap
+ok 48 - gate thresholds overlap
   ---
-  duration_ms: 0.111459
+  duration_ms: 0.106375
   type: 'test'
   ...
 # Subtest: duplicate category IDs
-ok 31 - duplicate category IDs
+ok 49 - duplicate category IDs
   ---
-  duration_ms: 0.140583
+  duration_ms: 0.146667
   type: 'test'
   ...
 # Subtest: fallback must identify a declared category
-ok 32 - fallback must identify a declared category
+ok 50 - fallback must identify a declared category
   ---
-  duration_ms: 0.10775
+  duration_ms: 0.09875
   type: 'test'
   ...
 # Subtest: duplicate question ID
-ok 33 - duplicate question ID
+ok 51 - duplicate question ID
   ---
-  duration_ms: 0.115708
+  duration_ms: 0.099084
   type: 'test'
   ...
 # Subtest: a question requires a binding
-ok 34 - a question requires a binding
+ok 52 - a question requires a binding
   ---
-  duration_ms: 0.113542
+  duration_ms: 0.104958
   type: 'test'
   ...
 # Subtest: policy references require policy role
-ok 35 - policy references require policy role
+ok 53 - policy references require policy role
   ---
-  duration_ms: 0.081292
+  duration_ms: 0.087541
   type: 'test'
   ...
 # Subtest: parent selector containing a declared target is unsafe
-ok 36 - parent selector containing a declared target is unsafe
+ok 54 - parent selector containing a declared target is unsafe
   ---
-  duration_ms: 0.07775
+  duration_ms: 0.085875
   type: 'test'
   ...
 # Subtest: child selector inside a declared target is unsafe
-ok 37 - child selector inside a declared target is unsafe
+ok 55 - child selector inside a declared target is unsafe
   ---
-  duration_ms: 0.820833
+  duration_ms: 0.480208
   type: 'test'
   ...
 # Subtest: gate dependency cycle
-ok 38 - gate dependency cycle
+ok 56 - gate dependency cycle
   ---
-  duration_ms: 0.277542
+  duration_ms: 0.118834
   type: 'test'
   ...
 # Subtest: field lineage cycle
-ok 39 - field lineage cycle
+ok 57 - field lineage cycle
   ---
-  duration_ms: 0.138666
+  duration_ms: 0.082583
   type: 'test'
   ...
 # Subtest: ambiguous prose is NOT falsely certified or rejected by a static checker
-ok 40 - ambiguous prose is NOT falsely certified or rejected by a static checker
+ok 58 - ambiguous prose is NOT falsely certified or rejected by a static checker
   ---
-  duration_ms: 0.1775
+  duration_ms: 0.140833
   type: 'test'
   ...
 # Subtest: backend capability limits are checked separately
-ok 41 - backend capability limits are checked separately
+ok 59 - backend capability limits are checked separately
   ---
-  duration_ms: 0.082875
+  duration_ms: 0.068708
   type: 'test'
   ...
 # Subtest: an unsupported output kind is a capability error
-ok 42 - an unsupported output kind is a capability error
+ok 60 - an unsupported output kind is a capability error
   ---
-  duration_ms: 0.062667
+  duration_ms: 0.0575
   type: 'test'
   ...
 # Subtest: parent object selector containing a declared field from a later stage is flagged
-ok 43 - parent object selector containing a declared field from a later stage is flagged
+ok 61 - parent object selector containing a declared field from a later stage is flagged
   ---
-  duration_ms: 0.0785
+  duration_ms: 0.073167
   type: 'test'
   ...
 # Subtest: parent object selector is not flagged when its declared children are available
-ok 44 - parent object selector is not flagged when its declared children are available
+ok 62 - parent object selector is not flagged when its declared children are available
   ---
-  duration_ms: 0.055917
+  duration_ms: 0.053542
   type: 'test'
   ...
 # Subtest: unregistered nested data is outside the static guarantee
-ok 45 - unregistered nested data is outside the static guarantee
+ok 63 - unregistered nested data is outside the static guarantee
   ---
-  duration_ms: 0.050292
+  duration_ms: 0.046083
   type: 'test'
   ...
 # Subtest: separate prerequisite branches are not implicitly ordered
-ok 46 - separate prerequisite branches are not implicitly ordered
+ok 64 - separate prerequisite branches are not implicitly ordered
   ---
-  duration_ms: 0.063041
+  duration_ms: 0.062416
   type: 'test'
   ...
 # Subtest: input suite remains unmodified
-ok 47 - input suite remains unmodified
+ok 65 - input suite remains unmodified
   ---
-  duration_ms: 0.074625
+  duration_ms: 0.073417
   type: 'test'
   ...
-1..47
-# tests 47
+1..65
+# tests 65
 # suites 0
-# pass 47
+# pass 65
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 1184.506458
+# duration_ms 1347.9875

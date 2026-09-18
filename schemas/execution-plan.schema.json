@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qlint ExecutionPlan v0.1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "kind": {
+      "const": "qlint.execution-plan"
+    },
+    "tool": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "qlint"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "provider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "replay"
+        },
+        "network": {
+          "const": false
+        }
+      },
+      "required": [
+        "name",
+        "network"
+      ],
+      "additionalProperties": false
+    },
+    "suite": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "digest"
+      ],
+      "additionalProperties": false
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/planQuestion"
+      },
+      "minItems": 1
+    },
+    "requestCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxRequests": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      },
+      "minItems": 0
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "tool",
+    "provider",
+    "suite",
+    "questions",
+    "requestCount",
+    "maxRequests",
+    "notes",
+    "digest"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "planField": {
+      "type": "object",
+      "properties": {
+        "fieldId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)+$"
+        },
+        "valueType": {
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array",
+            "object"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "role": {
+          "enum": [
+            "evidence",
+            "policy",
+            "metadata"
+          ]
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted"
+          ]
+        },
+        "handling": {
+          "const": "verbatim"
+        }
+      },
+      "required": [
+        "fieldId",
+        "pointer",
+        "valueType",
+        "nullable",
+        "role",
+        "sensitivity",
+        "handling"
+      ],
+      "additionalProperties": false
+    },
+    "planGate": {
+      "type": "object",
+      "properties": {
+        "purpose": {
+          "enum": [
+            "applicability",
+            "evidence"
+          ]
+        },
+        "questionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      },
+      "required": [
+        "purpose",
+        "questionId"
+      ],
+      "additionalProperties": false
+    },
+    "planQuestion": {
+      "type": "object",
+      "properties": {
+        "questionId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "atStage": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "profile": {
+          "enum": [
+            "feature",
+            "monitor",
+            "router",
+            "judge"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "extract",
+            "interpret",
+            "predict"
+          ]
+        },
+        "outputKind": {
+          "enum": [
+            "boolean",
+            "categorical",
+            "ordinal"
+          ]
+        },
+        "gates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/planGate"
+          },
+          "minItems": 0
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/planField"
+          },
+          "minItems": 1
+        },
+        "policyRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/planField"
+          },
+          "minItems": 0
+        },
+        "redaction": {
+          "type": "object",
+          "properties": {
+            "policy": {
+              "const": "explicit-projection-v0.1"
+            },
+            "excludedFieldIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "restrictedFieldIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "policy",
+            "excludedFieldIds",
+            "restrictedFieldIds",
+            "note"
+          ],
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "maxBytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxTokens": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "rationale"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "questionId",
+        "atStage",
+        "profile",
+        "mode",
+        "outputKind",
+        "gates",
+        "inputs",
+        "policyRefs",
+        "redaction",
+        "limits"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

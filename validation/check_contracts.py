@@ -25,6 +25,27 @@ def negative_diag(name,change):
 negative_diag('non-positive diagnostic line rejected',lambda s:s['locations'][0].update({'line':0}))
 negative_diag('non-positive diagnostic column rejected',lambda s:s['locations'][0].update({'column':-1}))
 negative_diag('blank diagnostic file rejected',lambda s:s['locations'][0].update({'file':' '}))
+ps=read('schemas/execution-plan.schema.json'); Draft202012Validator.check_schema(ps); pv=Draft202012Validator(ps)
+plan_sample={
+ 'schemaVersion':'0.1','kind':'qlint.execution-plan',
+ 'tool':{'name':'qlint','version':'0.1.0'},
+ 'provider':{'name':'replay','network':False},
+ 'suite':{'id':'fixture','digest':'sha256:'+'0'*64},
+ 'questions':[{'questionId':'q','atStage':'start','profile':'feature','mode':'interpret','outputKind':'boolean','gates':[],
+   'inputs':[{'fieldId':'task','pointer':'/task','valueType':'string','nullable':False,'role':'evidence','sensitivity':'internal','handling':'verbatim'}],
+   'policyRefs':[],
+   'redaction':{'policy':'explicit-projection-v0.1','excludedFieldIds':[],'restrictedFieldIds':[],'note':'note'},
+   'limits':{'rationale':'note'}}],
+ 'requestCount':1,'maxRequests':1,'notes':['note'],'digest':'sha256:'+'1'*64}
+pv.validate(plan_sample)
+results.append({'test':'execution plan schema accepts a minimal plan','passed':True})
+def negative_plan(name,change):
+    sample=deepcopy(plan_sample);change(sample)
+    assert list(pv.iter_errors(sample)), name
+    results.append({'test':name,'passed':True})
+negative_plan('malformed plan digest rejected',lambda p:p.update({'digest':'deadbeef'}))
+negative_plan('target role rejected in a plan projection',lambda p:p['questions'][0]['inputs'][0].update({'role':'target'}))
+negative_plan('unknown plan kind rejected',lambda p:p.update({'kind':'something_else'}))
 base=read('examples/scope-monitor.suite.json')
 def negative(name,change):
     sample=deepcopy(base);change(sample)

@@ -19,6 +19,7 @@ export interface SchemaIssue {
 export interface SchemaValidators {
   suite(data: unknown): SchemaIssue[];
   diagnostic(data: unknown): SchemaIssue[];
+  executionPlan(data: unknown): SchemaIssue[];
 }
 
 function escapeSegment(segment: string): string {
@@ -55,6 +56,7 @@ function toIssues(errors: ErrorObject[] | null | undefined): SchemaIssue[] {
 export interface SchemaSources {
   suite: object;
   diagnostic: object;
+  executionPlan: object;
 }
 
 /**
@@ -66,9 +68,11 @@ export function createSchemaValidators(sources: SchemaSources): SchemaValidators
   const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
   const suite = ajv.compile(sources.suite);
   const diagnostic = ajv.compile(sources.diagnostic);
+  const executionPlan = ajv.compile(sources.executionPlan);
   return {
     suite: data => toIssues(suite(data) ? null : suite.errors),
     diagnostic: data => toIssues(diagnostic(data) ? null : diagnostic.errors),
+    executionPlan: data => toIssues(executionPlan(data) ? null : executionPlan.errors),
   };
 }
 

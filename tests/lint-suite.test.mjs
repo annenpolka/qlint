@@ -10,6 +10,7 @@ const catalogRuleIds = catalog.rules.map(rule => rule.id);
 const validators = createSchemaValidators({
   suite: loadSchemaSync(new URL('schemas/question-suite.schema.json', root)),
   diagnostic: loadSchemaSync(new URL('schemas/diagnostic.schema.json', root)),
+  executionPlan: loadSchemaSync(new URL('schemas/execution-plan.schema.json', root)),
 });
 
 const readFixture = name => readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf8');

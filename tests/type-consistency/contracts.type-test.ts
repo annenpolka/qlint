@@ -7,8 +7,9 @@
  * Run via `npm run test:types` (generates tests/generated/ first, then tsc).
  * Nothing imports this file at runtime.
  */
-import type { Diagnostic, QuestionSuite } from "../../src/contracts.js";
+import type { Diagnostic, ExecutionPlan, QuestionSuite } from "../../src/contracts.js";
 import type { Diagnostic as GeneratedDiagnostic } from "../generated/diagnostic.js";
+import type { ExecutionPlan as GeneratedExecutionPlan } from "../generated/execution-plan.js";
 import type { QuestionSuite as GeneratedQuestionSuite } from "../generated/question-suite.js";
 
 type Extends<A, B> = [A] extends [B] ? true : false;
@@ -16,6 +17,8 @@ type MutuallyAssignable<A, B> = Extends<A, B> extends true ? Extends<B, A> : fal
 
 const suite: MutuallyAssignable<QuestionSuite, GeneratedQuestionSuite> = true;
 const diagnostic: MutuallyAssignable<Diagnostic, GeneratedDiagnostic> = true;
+const plan: MutuallyAssignable<ExecutionPlan, GeneratedExecutionPlan> = true;
 
 void suite;
 void diagnostic;
+void plan;

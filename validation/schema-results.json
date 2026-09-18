@@ -1,6 +1,6 @@
 {
   "suiteSchema": "Draft 2020-12",
-  "passed": 19,
+  "passed": 23,
   "failed": 0,
   "tests": [
     {
@@ -33,6 +33,22 @@
     },
     {
       "test": "blank diagnostic file rejected",
+      "passed": true
+    },
+    {
+      "test": "execution plan schema accepts a minimal plan",
+      "passed": true
+    },
+    {
+      "test": "malformed plan digest rejected",
+      "passed": true
+    },
+    {
+      "test": "target role rejected in a plan projection",
+      "passed": true
+    },
+    {
+      "test": "unknown plan kind rejected",
       "passed": true
     },
     {

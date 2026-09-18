@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "0.1",
+  "id": "two_questions",
+  "state": {
+    "id": "fixture_state",
+    "stages": [
+      {
+        "id": "start",
+        "after": []
+      },
+      {
+        "id": "during",
+        "after": [
+          "start"
+        ]
+      },
+      {
+        "id": "complete",
+        "after": [
+          "during"
+        ]
+      }
+    ],
+    "fields": [
+      {
+        "id": "task",
+        "pointer": "/task",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "start",
+        "role": "evidence",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      },
+      {
+        "id": "diff",
+        "pointer": "/diff",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "during",
+        "role": "evidence",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      },
+      {
+        "id": "outcome",
+        "pointer": "/outcome",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "complete",
+        "role": "target",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q_task",
+      "revision": 1,
+      "mode": "interpret",
+      "instructions": "Does the task ask for changes?",
+      "inputs": [
+        "task"
+      ],
+      "policyRefs": [],
+      "applicability": "A task exists.",
+      "evidenceBoundary": "The task text is the only evidence.",
+      "missingInput": "abstain",
+      "insufficientEvidence": "abstain",
+      "output": {
+        "kind": "boolean",
+        "criteria": {
+          "true": "The task asks for changes.",
+          "false": "The task asks for no changes."
+        }
+      }
+    },
+    {
+      "id": "q_diff",
+      "revision": 1,
+      "mode": "interpret",
+      "instructions": "Does the diff contain a change?",
+      "inputs": [
+        "diff"
+      ],
+      "policyRefs": [],
+      "applicability": "A diff exists.",
+      "evidenceBoundary": "The diff text is the only evidence.",
+      "missingInput": "abstain",
+      "insufficientEvidence": "abstain",
+      "output": {
+        "kind": "boolean",
+        "criteria": {
+          "true": "The diff contains a change.",
+          "false": "The diff is empty."
+        }
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "questionId": "q_task",
+      "atStage": "during",
+      "profile": "feature",
+      "gates": [],
+      "onIndeterminate": "abstain"
+    },
+    {
+      "questionId": "q_diff",
+      "atStage": "during",
+      "profile": "feature",
+      "gates": [],
+      "onIndeterminate": "abstain"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"model":"jev-1.13.0","answers":{"sufficiency_allowed_fields_defined":{"type":"noul","noul":0.95},"payload_reads_only_own_lists":{"type":"noul","noul":0.96}},"usage":{"input_tokens":7052,"output_tokens":47}}
