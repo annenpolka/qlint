@@ -1,0 +1,25 @@
+{
+  "status": "design_and_offline_reference_implementation",
+  "node": "v22.16.0",
+  "typescript": "Version 5.8.3",
+  "static_tests": {
+    "passed": 23,
+    "failed": 0
+  },
+  "schema_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "live_model_requests": 0,
+  "rule_definitions": 33,
+  "not_implemented": [
+    "production CLI",
+    "Jev adapter",
+    "semantic screening",
+    "state projection runtime",
+    "gate runtime",
+    "probe",
+    "fuzz",
+    "diff"
+  ]
+}

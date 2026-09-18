@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: valid fixture has no cross-reference violations; semantics explicitly not checked
+ok 1 - valid fixture has no cross-reference violations; semantics explicitly not checked
+  ---
+  duration_ms: 1.998276
+  type: 'test'
+  ...
+# Subtest: unknown input reference
+ok 2 - unknown input reference
+  ---
+  duration_ms: 0.576267
+  type: 'test'
+  ...
+# Subtest: stage cycle
+ok 3 - stage cycle
+  ---
+  duration_ms: 0.286661
+  type: 'test'
+  ...
+# Subtest: future input is not available during execution
+ok 4 - future input is not available during execution
+  ---
+  duration_ms: 0.21905
+  type: 'test'
+  ...
+# Subtest: direct evaluation label leakage
+ok 5 - direct evaluation label leakage
+  ---
+  duration_ms: 0.329716
+  type: 'test'
+  ...
+# Subtest: derived label leakage
+ok 6 - derived label leakage
+  ---
+  duration_ms: 0.280402
+  type: 'test'
+  ...
+# Subtest: lineage availability cannot be erased by an earlier declared timestamp
+ok 7 - lineage availability cannot be erased by an earlier declared timestamp
+  ---
+  duration_ms: 0.254844
+  type: 'test'
+  ...
+# Subtest: non-boolean gate
+ok 8 - non-boolean gate
+  ---
+  duration_ms: 0.207522
+  type: 'test'
+  ...
+# Subtest: gate thresholds overlap
+ok 9 - gate thresholds overlap
+  ---
+  duration_ms: 0.361373
+  type: 'test'
+  ...
+# Subtest: duplicate category IDs
+ok 10 - duplicate category IDs
+  ---
+  duration_ms: 0.375685
+  type: 'test'
+  ...
+# Subtest: fallback must identify a declared category
+ok 11 - fallback must identify a declared category
+  ---
+  duration_ms: 0.228043
+  type: 'test'
+  ...
+# Subtest: duplicate question ID
+ok 12 - duplicate question ID
+  ---
+  duration_ms: 0.171628
+  type: 'test'
+  ...
+# Subtest: a question requires a binding
+ok 13 - a question requires a binding
+  ---
+  duration_ms: 0.163205
+  type: 'test'
+  ...
+# Subtest: policy references require policy role
+ok 14 - policy references require policy role
+  ---
+  duration_ms: 0.144587
+  type: 'test'
+  ...
+# Subtest: parent selector containing a declared target is unsafe
+ok 15 - parent selector containing a declared target is unsafe
+  ---
+  duration_ms: 0.171518
+  type: 'test'
+  ...
+# Subtest: child selector inside a declared target is unsafe
+ok 16 - child selector inside a declared target is unsafe
+  ---
+  duration_ms: 0.132729
+  type: 'test'
+  ...
+# Subtest: gate dependency cycle
+ok 17 - gate dependency cycle
+  ---
+  duration_ms: 0.143746
+  type: 'test'
+  ...
+# Subtest: field lineage cycle
+ok 18 - field lineage cycle
+  ---
+  duration_ms: 0.721406
+  type: 'test'
+  ...
+# Subtest: ambiguous prose is NOT falsely certified or rejected by a static checker
+ok 19 - ambiguous prose is NOT falsely certified or rejected by a static checker
+  ---
+  duration_ms: 0.227633
+  type: 'test'
+  ...
+# Subtest: backend capability limits are checked separately
+ok 20 - backend capability limits are checked separately
+  ---
+  duration_ms: 0.149304
+  type: 'test'
+  ...
+# Subtest: an unsupported output kind is a capability error
+ok 21 - an unsupported output kind is a capability error
+  ---
+  duration_ms: 0.176345
+  type: 'test'
+  ...
+# Subtest: separate prerequisite branches are not implicitly ordered
+ok 22 - separate prerequisite branches are not implicitly ordered
+  ---
+  duration_ms: 0.155984
+  type: 'test'
+  ...
+# Subtest: input suite remains unmodified
+ok 23 - input suite remains unmodified
+  ---
+  duration_ms: 0.153531
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.606816

@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qlint Diagnostic v0.1",
+  "type": "object",
+  "properties": {
+    "ruleId": {
+      "type": "string",
+      "pattern": "^Q(?:CT|SM|BE|PR|SU)[0-9]{3}$"
+    },
+    "questionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "severity": {
+      "enum": [
+        "error",
+        "warning",
+        "info"
+      ]
+    },
+    "basis": {
+      "enum": [
+        "static_proof",
+        "model_signal",
+        "empirical_witness"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointer": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "pointer"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "contract_ref"
+              },
+              "pointer": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "kind",
+              "pointer"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "model_response"
+              },
+              "runId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "answerId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "modelProbability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "kind",
+              "runId",
+              "answerId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "paired_case"
+              },
+              "beforeCaseId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "afterCaseId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "transformId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "transformReview": {
+                "enum": [
+                  "human_reviewed",
+                  "unreviewed"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "beforeCaseId",
+              "afterCaseId",
+              "transformId",
+              "transformReview"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "metric"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "value": {
+                "type": "number"
+              },
+              "sampleSize": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "kind",
+              "name",
+              "value",
+              "sampleSize",
+              "unit"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "ruleId",
+    "severity",
+    "basis",
+    "message",
+    "locations",
+    "evidence"
+  ],
+  "additionalProperties": false
+}

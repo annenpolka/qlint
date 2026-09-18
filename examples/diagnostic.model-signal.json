@@ -1,0 +1,20 @@
+{
+  "ruleId": "QSM001",
+  "questionId": "scope_drift",
+  "severity": "warning",
+  "basis": "model_signal",
+  "message": "独立に変わり得る現在状態と将来結果を、一つの真偽値にまとめている疑いがある。これは説明用の架空診断であり、実モデル出力ではない。",
+  "locations": [
+    {
+      "pointer": "/questions/1/instructions"
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "model_response",
+      "runId": "illustrative_not_live",
+      "answerId": "compound_judgment",
+      "modelProbability": 0.91
+    }
+  ]
+}

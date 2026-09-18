@@ -1,0 +1,426 @@
+{
+  "schemaVersion": "0.1",
+  "note": "Default severity never changes the evidence basis. referenceImplemented describes this bundle, not a released CLI.",
+  "rules": [
+    {
+      "id": "QCT001",
+      "name": "schema-invalid",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "QuestionSuite/Diagnosticの構造制約違反。",
+      "requires": [
+        "schema",
+        "document"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT002",
+      "name": "unknown-reference",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "登録されていないfield/stage/questionへの参照。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT003",
+      "name": "dependency-cycle",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "stage・field lineage・gate依存の循環。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT004",
+      "name": "input-unavailable-at-stage",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "宣言された実行時点で、入力または派生元が利用可能と保証されない。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT005",
+      "name": "target-tainted-input",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "評価ラベルそのもの、派生元、または含有するselectorの混入。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT006",
+      "name": "invalid-answer-space",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "選択肢/レベルのID重複や存在しないfallback参照。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT007",
+      "name": "invalid-gate",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "boolean以外のgate、閾値区間の重複、時点の不整合。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT008",
+      "name": "duplicate-or-missing-binding",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "重複ID、重複binding、実行対象にbindingがない。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QCT009",
+      "name": "invalid-role-reference",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "policyRef/targetRefが宣言されたroleと一致しない。",
+      "requires": [
+        "suite"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QSM001",
+      "name": "compound-judgment",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "独立概念の合成疑い。明示されたAND条件などは正当な場合がある。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM002",
+      "name": "underspecified-boundary",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "判定境界や否定側の意味が不足している疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM003",
+      "name": "unobservable-as-declared",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "extract/interpretとして宣言したが、入力外の観測を要する疑い。predictは同じ基準で拒否しない。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM004",
+      "name": "primitive-mismatch",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "求める答えの形とboolean/categorical/ordinalの不一致疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM005",
+      "name": "overlapping-partition",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "selection=partitionなのにカテゴリが重なる疑い。best_fitにはそのまま適用しない。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM006",
+      "name": "category-coverage-gap",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "想定母集団に、どのカテゴリにも入らない入力がある疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM007",
+      "name": "incoherent-ordinal-axis",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "レベル間で測る軸が変わる、または単一順序にならない疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM008",
+      "name": "instruction-in-data",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "検査対象の質問・サンプルに検査器への命令が混じる疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSM009",
+      "name": "missing-policy-grounding",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "規範的判断なのに基準文書・基準説明が不明瞭な疑い。",
+      "requires": [
+        "suite",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QBE001",
+      "name": "unsupported-output-kind",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "adapterが出力型に対応しない。",
+      "requires": [
+        "suite",
+        "backend_capabilities"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QBE002",
+      "name": "backend-limit-exceeded",
+      "phase": "lint",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "options/levelsの明示された上限を超える。",
+      "requires": [
+        "suite",
+        "backend_capabilities"
+      ],
+      "referenceImplemented": true
+    },
+    {
+      "id": "QBE003",
+      "name": "fabricated-probability",
+      "phase": "normalize",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "ラベルのみの出力を、根拠なしに確率1の分布へ変換した。",
+      "requires": [
+        "adapter_trace"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QBE004",
+      "name": "context-dependent-level",
+      "phase": "screen",
+      "basis": "model_signal",
+      "defaultSeverity": "warning",
+      "summary": "単独評価されるlevelが、前の段階など他levelの説明に依存する。",
+      "requires": [
+        "suite",
+        "backend_capabilities",
+        "screen_model"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR001",
+      "name": "abstention-violation",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "error",
+      "summary": "入力欠損・対象外・情報不足を、通常のfalse/最下位に潰している。",
+      "requires": [
+        "trusted_cases",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR002",
+      "name": "invariance-violation",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "承認済みの意味保存変換で、事前に定めた許容範囲を超えて変化。",
+      "requires": [
+        "reviewed_pairs",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR003",
+      "name": "monotonicity-violation",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "承認済みの単一軸変化に対して順序制約が破れた。",
+      "requires": [
+        "reviewed_pairs",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR004",
+      "name": "behavioral-regression",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "固定case・安定ID・同じ条件で、意図しない判定変更を検出。",
+      "requires": [
+        "paired_runs",
+        "decision_policy"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR005",
+      "name": "low-variation",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "info",
+      "summary": "観測母集団上の変動が小さい。検出器の不要判定には用いない。",
+      "requires": [
+        "sample",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR006",
+      "name": "label-disagreement",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "根拠付き正解ラベルとの不一致。ラベル品質と対象母集団を併記する。",
+      "requires": [
+        "gold_labels",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR007",
+      "name": "calibration-gap",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "検証用ラベル上で確率と観測頻度が乖離。閾値やbin依存も記録する。",
+      "requires": [
+        "heldout_labels",
+        "native_or_empirical_probabilities"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QPR008",
+      "name": "insufficient-coverage",
+      "phase": "probe",
+      "basis": "empirical_witness",
+      "defaultSeverity": "info",
+      "summary": "必要な層・サンプル・ラベルが不足。対象questionの欠陥を断定しない。",
+      "requires": [
+        "run_manifest",
+        "profile"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSU001",
+      "name": "correlated-questions",
+      "phase": "suite",
+      "basis": "empirical_witness",
+      "defaultSeverity": "info",
+      "summary": "同一母集団で出力が高相関。意味的重複の証明でも自動削除の指示でもない。",
+      "requires": [
+        "aligned_results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSU002",
+      "name": "declared-relation-violation",
+      "phase": "suite",
+      "basis": "empirical_witness",
+      "defaultSeverity": "warning",
+      "summary": "明示的に宣言した質問間の排他・含意関係が承認case上で破れた。",
+      "requires": [
+        "relation_contract",
+        "results"
+      ],
+      "referenceImplemented": false
+    },
+    {
+      "id": "QSU003",
+      "name": "evaluation-split-contamination",
+      "phase": "suite",
+      "basis": "static_proof",
+      "defaultSeverity": "error",
+      "summary": "発見用と未使用検証用の分離に、宣言されたcase lineage上の違反がある。",
+      "requires": [
+        "case_lineage",
+        "split_manifest"
+      ],
+      "referenceImplemented": false
+    }
+  ]
+}

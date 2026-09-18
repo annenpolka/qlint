@@ -1,0 +1,67 @@
+{
+  "suiteSchema": "Draft 2020-12",
+  "passed": 15,
+  "failed": 0,
+  "tests": [
+    {
+      "test": "schema accepts scope-monitor.suite.json",
+      "passed": true
+    },
+    {
+      "test": "schema accepts semantic-ambiguity.suite.json",
+      "passed": true
+    },
+    {
+      "test": "schema accepts target-leak.suite.json",
+      "passed": true
+    },
+    {
+      "test": "diagnostic schema validates the explicitly synthetic fixture",
+      "passed": true
+    },
+    {
+      "test": "unknown property rejected",
+      "passed": true
+    },
+    {
+      "test": "predict requires a target/horizon",
+      "passed": true
+    },
+    {
+      "test": "non-predict forbids prediction metadata",
+      "passed": true
+    },
+    {
+      "test": "missing input cannot silently become false",
+      "passed": true
+    },
+    {
+      "test": "invalid probability bounds rejected",
+      "passed": true
+    },
+    {
+      "test": "single categorical option rejected",
+      "passed": true
+    },
+    {
+      "test": "malformed JSON Pointer rejected",
+      "passed": true
+    },
+    {
+      "test": "root selector rejected",
+      "passed": true
+    },
+    {
+      "test": "unknown output kind rejected",
+      "passed": true
+    },
+    {
+      "test": "empty instructions rejected",
+      "passed": true
+    },
+    {
+      "test": "boolean needs both criteria",
+      "passed": true
+    }
+  ]
+}
