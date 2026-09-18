@@ -10,9 +10,20 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { parseBackendCapabilities } from "./capabilities.js";
-import type { BackendCapabilities, ExecutionPlan, Json, QuestionSuite, RecordedResponse, RunReport } from "./contracts.js";
+import type {
+  BackendCapabilities,
+  ExecutionPlan,
+  Json,
+  QuestionSuite,
+  RecordedResponse,
+  RunReport,
+  ScreeningPack,
+  ScreeningRequest,
+  ScreeningReport,
+} from "./contracts.js";
 import type { LintReport } from "./lint-suite.js";
 import { InternalLintError, LINT_SCOPE, lintSuiteSource } from "./lint-suite.js";
+import { buildScreeningRequests, screenFromRecordings, ScreeningError } from "./screening.js";
 import { buildPlan, PlanError, planDigest } from "./plan.js";
 import type { ReplayCase } from "./replay.js";
 import { ReplayError, replayPlan, runReportDigest } from "./replay.js";
@@ -27,6 +38,8 @@ Usage:
                  [--max-requests N] [--max-bytes N] [--max-tokens N] [--allow-restricted]
   qlint run <plan.json> --cases <cases.jsonl> --replay <recorded.jsonl>
              [--out <report.json>] [--format text|json]
+  qlint screen <suite.json> (--replay <recorded.jsonl> | --dry-run)
+              [--out <report.json>] [--format text|json] [--fail-on-signal]
   qlint --help
   qlint --version
 
@@ -42,7 +55,10 @@ are NOT run; the report lists them under "not run" and never presents a clean
 static lint as semantic approval.
 inspect writes a digest-bound execution plan; it never contacts a provider.
 run executes a plan against recorded responses only; live providers are not
-implemented in this bundle.`;
+implemented in this bundle.
+screen asks the semantic screening meta-questions over recorded Jev responses
+(or prints them with --dry-run). Signals are model_signal diagnostics; without
+--fail-on-signal they do not fail the command.`;
 
 export interface CliStreams {
   stdout(text: string): void;
@@ -93,7 +109,7 @@ const VALUE_FLAGS = new Set([
   "--out", "--format", "--capabilities", "--max-requests", "--max-bytes", "--max-tokens",
   "--cases", "--replay", "--allow-provider",
 ]);
-const BOOLEAN_FLAGS = new Set(["--help", "-h", "--version", "-v", "--allow-restricted"]);
+const BOOLEAN_FLAGS = new Set(["--help", "-h", "--version", "-v", "--allow-restricted", "--dry-run", "--fail-on-signal"]);
 
 interface ParsedArgv {
   flags: Map<string, string>;
@@ -116,6 +132,15 @@ type Command =
       allowRestricted: boolean;
     }
   | { kind: "run"; planPath: string; casesPath: string; replayPath: string; out?: string; format: "text" | "json" }
+  | {
+      kind: "screen";
+      file: string;
+      replayPath?: string;
+      out?: string;
+      format: "text" | "json";
+      dryRun: boolean;
+      failOnSignal: boolean;
+    }
   | { kind: "error"; message: string };
 
 function parseArgv(argv: string[]): ParsedArgv | { error: string } {
@@ -226,24 +251,67 @@ function parseArgs(argv: string[]): Command {
     return { kind: "run", planPath: file, casesPath, replayPath, format, ...(out === undefined ? {} : { out }) };
   }
 
+  if (commandName === "screen") {
+    const flagError = checkFlags(parsed, ["--out", "--format", "--replay"], ["--dry-run", "--fail-on-signal"]);
+    if (flagError) return { kind: "error", message: flagError };
+    const format = parseFormat(parsed);
+    if (format !== "text" && format !== "json") return { kind: "error", message: format };
+    const replayPath = parsed.flags.get("--replay");
+    const dryRun = parsed.booleans.has("--dry-run");
+    if (replayPath === undefined && !dryRun) {
+      return { kind: "error", message: "screen requires --replay <recorded.jsonl> (or --dry-run)" };
+    }
+    const out = parsed.flags.get("--out");
+    return {
+      kind: "screen",
+      file,
+      format,
+      dryRun,
+      failOnSignal: parsed.booleans.has("--fail-on-signal"),
+      ...(replayPath === undefined ? {} : { replayPath }),
+      ...(out === undefined ? {} : { out }),
+    };
+  }
+
   return { kind: "error", message: `unknown command: ${commandName}` };
 }
 
-function readText(path: string, what: string): string {
+function readText(path: string | URL, what: string): string {
   try {
     return readFileSync(path, "utf8");
   } catch (error) {
-    throw new CliError(`cannot read ${what} ${path}: ${errorMessage(error)}`);
+    throw new CliError(`cannot read ${what} ${String(path)}: ${errorMessage(error)}`);
   }
 }
 
-function readJson(path: string, what: string): unknown {
+function readJson(path: string | URL, what: string): unknown {
   const source = readText(path, what);
   try {
     return JSON.parse(source);
   } catch (error) {
-    throw new CliError(`${what} ${path} is not valid JSON: ${errorMessage(error)}`);
+    throw new CliError(`${what} ${String(path)} is not valid JSON: ${errorMessage(error)}`);
   }
+}
+
+function loadScreeningPack(): ScreeningPack {
+  const parsed = readJson(new URL("../rules/screening-pack.json", import.meta.url), "screening pack");
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new CliError("rules/screening-pack.json is not a JSON object");
+  }
+  const pack = parsed as ScreeningPack;
+  if (!Array.isArray(pack.rules) || pack.rules.length === 0) {
+    throw new CliError("rules/screening-pack.json has no rules");
+  }
+  for (const rule of pack.rules) {
+    const complete = typeof rule.id === "string"
+      && typeof rule.summary === "string"
+      && typeof rule.message === "string"
+      && typeof rule.applicability?.instructions === "string"
+      && typeof rule.sufficiency?.instructions === "string"
+      && typeof rule.violation?.instructions === "string";
+    if (!complete) throw new CliError(`rules/screening-pack.json rule ${String(rule.id)} is incomplete`);
+  }
+  return pack;
 }
 
 function readCapabilities(path: string): BackendCapabilities {
@@ -373,6 +441,51 @@ function exitCodeForRun(report: RunReport): number {
   return 0;
 }
 
+function renderScreeningRequestsText(requests: ScreeningRequest[]): string {
+  const lines: string[] = [];
+  lines.push("qlint — semantic screening requests (dry run; nothing is sent)");
+  lines.push(`requests: ${requests.length} (one per question)`);
+  for (const request of requests) {
+    lines.push(`  ${request.questionId}: ${request.rules.map(rule => rule.ruleId).join(", ")}`);
+    lines.push(`    digest: ${request.requestDigest}`);
+  }
+  lines.push("note: thresholds are uncalibrated reference defaults and are recorded in the screening report.");
+  lines.push("note: state contains the question text and field descriptors only; no field values, labels, or expected diagnostics.");
+  return lines.join("\n") + "\n";
+}
+
+function renderScreeningText(report: ScreeningReport): string {
+  const lines: string[] = [];
+  lines.push(`qlint ${report.tool.version} — screening (provider: ${report.provider}; network: no)`);
+  lines.push(`suite: ${report.suite.id} (${report.suite.digest})`);
+  lines.push(`policy: ${report.policy.policyId} (applicability>=${report.policy.applicabilityAtLeast}, sufficiency>=${report.policy.sufficiencyAtLeast}, signal>=${report.policy.signalAtLeast})`);
+  lines.push(`requests: ${report.summary.requests}`);
+  lines.push(`observations: ${report.summary.signals} signals, ${report.summary.inconclusive} inconclusive, ${report.summary.notRun} not run, ${report.summary.malformed} malformed`);
+  for (const observation of report.observations) {
+    if (observation.status === "no_signal") continue;
+    const probabilities = [
+      observation.applicability === undefined ? undefined : `a=${observation.applicability}`,
+      observation.sufficiency === undefined ? undefined : `s=${observation.sufficiency}`,
+      observation.violation === undefined ? undefined : `v=${observation.violation}`,
+    ].filter((value): value is string => value !== undefined).join(" ");
+    lines.push(`  ${observation.questionId} ${observation.ruleId} ${observation.status}${probabilities === "" ? "" : ` (${probabilities})`}`);
+  }
+  for (const diagnostic of report.diagnostics) {
+    const location = diagnostic.locations[0];
+    lines.push(`  ${report.suite.id}${location?.pointer ?? "/"}  warning  ${diagnostic.ruleId}  ${diagnostic.message}`);
+  }
+  for (const item of report.notExecuted) lines.push(`not run: ${item}`);
+  lines.push(`report digest: ${report.digest}`);
+  return lines.join("\n") + "\n";
+}
+
+function exitCodeForScreening(report: ScreeningReport, failOnSignal: boolean): number {
+  if (report.summary.malformed > 0) return 2;
+  if (failOnSignal && report.diagnostics.length > 0) return 1;
+  if (report.summary.notRun > 0) return 3;
+  return 0;
+}
+
 export function run(argv: string[], streams: CliStreams): number {
   const command = parseArgs(argv);
   if (command.kind === "help") {
@@ -436,6 +549,45 @@ export function run(argv: string[], streams: CliStreams): number {
       return 0;
     }
 
+    if (command.kind === "screen") {
+      const validators = loadValidators();
+      const source = readText(command.file, "suite file");
+      const lint = lintSuiteSource({
+        source,
+        file: command.file,
+        catalogRuleIds: loadCatalogRuleIds(),
+        validators,
+        version: readVersion(),
+      });
+      if (lint.summary.errors > 0) {
+        streams.stdout(command.format === "json" ? JSON.stringify(lint, null, 2) + "\n" : renderLintText(lint));
+        return 1;
+      }
+      const suite = JSON.parse(source) as QuestionSuite;
+      const pack = loadScreeningPack();
+      if (command.dryRun) {
+        const requests = buildScreeningRequests(suite, pack);
+        streams.stdout(command.format === "json"
+          ? JSON.stringify({ provider: "replay", requests }, null, 2) + "\n"
+          : renderScreeningRequestsText(requests));
+        return 0;
+      }
+      if (command.replayPath === undefined) throw new CliError("screen requires --replay <recorded.jsonl>");
+      const recordings = readRecordings(command.replayPath);
+      const report = screenFromRecordings(suite, pack, recordings, readVersion());
+      for (const diagnostic of report.diagnostics) {
+        const issues = validators.diagnostic(diagnostic);
+        if (issues.length > 0) {
+          throw new InternalLintError(`emitted diagnostic ${diagnostic.ruleId} does not satisfy schemas/diagnostic.schema.json: ${issues.map(issue => issue.message).join("; ")}`);
+        }
+      }
+      if (command.out !== undefined) {
+        writeFileSync(command.out, JSON.stringify(report, null, 2) + "\n");
+      }
+      streams.stdout(command.format === "json" ? JSON.stringify(report, null, 2) + "\n" : renderScreeningText(report));
+      return exitCodeForScreening(report, command.failOnSignal);
+    }
+
     // command.kind === "run"
     const validators = loadValidators();
     const plan = readJson(command.planPath, "plan file") as ExecutionPlan;
@@ -458,7 +610,8 @@ export function run(argv: string[], streams: CliStreams): number {
     streams.stdout(command.format === "json" ? JSON.stringify(report, null, 2) + "\n" : renderRunText(report));
     return exitCodeForRun(report);
   } catch (error) {
-    if (error instanceof CliError || error instanceof InternalLintError || error instanceof PlanError || error instanceof ReplayError) {
+    if (error instanceof CliError || error instanceof InternalLintError || error instanceof PlanError
+        || error instanceof ReplayError || error instanceof ScreeningError) {
       streams.stderr(`qlint: ${errorMessage(error)}\n`);
       return 2;
     }

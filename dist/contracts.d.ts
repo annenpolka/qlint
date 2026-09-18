@@ -217,6 +217,113 @@ export interface RunReport {
     /** sha256 over the report content without this field. */
     digest: string;
 }
+export interface ScreeningPolicy {
+    policyId: Id;
+    /** Uncalibrated defaults; choose thresholds on validation data before relying on them. */
+    applicabilityAtLeast: number;
+    sufficiencyAtLeast: number;
+    signalAtLeast: number;
+    note: string;
+}
+export interface ScreeningSubQuestion {
+    type: "noul";
+    instructions: string;
+    criteria: {
+        true: string;
+        false: string;
+    };
+}
+export interface ScreeningRuleView {
+    ruleId: Id;
+    summary: string;
+    subQuestionIds: {
+        applicability: string;
+        sufficiency: string;
+        violation: string;
+    };
+}
+export interface ScreeningRequest {
+    questionId: Id;
+    questionIndex: number;
+    /** Content that would be sent as provider state. Never contains field values. */
+    state: Json;
+    /** Content that would be sent as provider questions, keyed by sub-question id. */
+    questions: Record<string, ScreeningSubQuestion>;
+    rules: ScreeningRuleView[];
+    requestDigest: string;
+}
+export interface ScreeningObservation {
+    questionId: Id;
+    ruleId: Id;
+    status: "signal" | "no_signal" | "not_applicable" | "inconclusive" | "malformed" | "not_run";
+    applicability?: number;
+    sufficiency?: number;
+    violation?: number;
+    problems?: string[];
+}
+export interface ScreeningReport {
+    schemaVersion: "0.1";
+    kind: "qlint.screening-report";
+    tool: {
+        name: "qlint";
+        version: string;
+    };
+    provider: "replay";
+    suite: {
+        id: Id;
+        digest: string;
+    };
+    policy: ScreeningPolicy;
+    observations: ScreeningObservation[];
+    /** model_signal diagnostics only; the rule engine builds them, never the model. */
+    diagnostics: Diagnostic[];
+    summary: {
+        questions: number;
+        requests: number;
+        signals: number;
+        inconclusive: number;
+        notRun: number;
+        malformed: number;
+    };
+    notExecuted: string[];
+    digest: string;
+}
+export interface ScreeningRuleDefinition {
+    id: Id;
+    summary: string;
+    message: string;
+    appliesTo: {
+        modes?: QuestionSpec["mode"][];
+        outputKinds?: OutputSpec["kind"][];
+    };
+    applicability: {
+        instructions: string;
+        criteria: {
+            true: string;
+            false: string;
+        };
+    };
+    sufficiency: {
+        instructions: string;
+        criteria: {
+            true: string;
+            false: string;
+        };
+    };
+    violation: {
+        instructions: string;
+        criteria: {
+            true: string;
+            false: string;
+        };
+    };
+}
+export interface ScreeningPack {
+    schemaVersion: "0.1";
+    note: string;
+    model?: string;
+    rules: ScreeningRuleDefinition[];
+}
 export type DiagnosticBasis = "static_proof" | "model_signal" | "empirical_witness";
 export type Severity = "error" | "warning" | "info";
 export type Evidence = {

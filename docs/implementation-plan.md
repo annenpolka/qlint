@@ -1,6 +1,6 @@
 # 実装計画と受入条件
 
-進捗（2026-09-18）: 第0節の型整合性検査を導入（`npm run test:types`）。第1節の参照lint CLIを実装（JSON Schema検証、元ファイル位置、coverage、exit 0/1/2）。第2節のinspect/plan・projection・replayを実装（plan digest固定、recorded response照合、networkなし、projection golden tests）。live provider、YAML parser、SARIF/LSPは未着手。第3節以降は未着手。
+進捗（2026-09-18）: 第0節の型整合性検査を導入（`npm run test:types`）。第1節の参照lint CLIを実装（JSON Schema検証、元ファイル位置、coverage、exit 0/1/2）。第2節のinspect/plan・projection・replayを実装（plan digest固定、recorded response照合、networkなし、projection golden tests）。第3節のJev adapterと最小semantic rule pack（QSM001–004、QBE004）をofflineで実装（厳格な応答検証、再正規化なし、model_signal診断、`screen --replay/--dry-run`）。live Jev実行、第4節の評価セット、YAML parser、SARIF/LSPは未着手。
 
 ## 0. 既にあるものを正本にする
 

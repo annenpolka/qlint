@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "0.1",
+  "note": "Meta-question definitions for semantic screening. Only the sub-question instructions and criteria are sent to the provider; rule IDs are never sent. Thresholds live in the screening policy, not here.",
+  "model": "jev-latest",
+  "rules": [
+    {
+      "id": "QSM001",
+      "summary": "独立概念の合成疑い。明示されたAND条件などは正当な場合がある。",
+      "message": "独立に変わり得る概念が、意図の説明なしに一つの答えへ合成されている疑いがある。",
+      "appliesTo": {},
+      "applicability": {
+        "instructions": "Is the compound-judgment rule applicable to the shown question?",
+        "criteria": {
+          "true": "The shown instructions ask for a single answer that could cover more than one concept.",
+          "false": "The shown instructions ask about one concept only."
+        }
+      },
+      "sufficiency": {
+        "instructions": "Are the shown question materials sufficient to judge compound judgment reliably?",
+        "criteria": {
+          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
+          "false": "Important material, such as policy text or representative inputs, is missing."
+        }
+      },
+      "violation": {
+        "instructions": "Do the shown instructions combine two or more concepts that can vary independently into a single answer, without stating how the concepts should compose?",
+        "criteria": {
+          "true": "One answer is required for independently varying concepts and no intended composition is stated.",
+          "false": "The question judges a single concept, or it states how multiple concepts compose (for example an explicit AND condition)."
+        }
+      }
+    },
+    {
+      "id": "QSM002",
+      "summary": "判定境界や否定側の意味が不足している疑い。",
+      "message": "判定境界または否定側の意味が不足している疑いがある。",
+      "appliesTo": {},
+      "applicability": {
+        "instructions": "Is the underspecified-boundary rule applicable to the shown question?",
+        "criteria": {
+          "true": "The shown question defines a boundary between answers that could be read in more than one way.",
+          "false": "The shown question has no meaningful boundary to disagree about."
+        }
+      },
+      "sufficiency": {
+        "instructions": "Are the shown question materials sufficient to judge boundary specification reliably?",
+        "criteria": {
+          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
+          "false": "Important material, such as policy text or representative inputs, is missing."
+        }
+      },
+      "violation": {
+        "instructions": "Given only the shown instructions and criteria, would different reasonable readers be likely to place the same input on different sides of the boundary, or to disagree about what the negative answer means?",
+        "criteria": {
+          "true": "The boundary or the negative side is left open enough that reasonable readers could disagree.",
+          "false": "The boundary and the negative side are specified well enough for the shown inputs."
+        }
+      }
+    },
+    {
+      "id": "QSM003",
+      "summary": "extract/interpretとして宣言したが、入力外の観測を要する疑い。predictは同じ基準で拒否しない。",
+      "message": "extract/interpretとして宣言されているが、宣言された入力の外側の観測を要する疑いがある。",
+      "appliesTo": {
+        "modes": ["extract", "interpret"]
+      },
+      "applicability": {
+        "instructions": "Is the unobservable-as-declared rule applicable to the shown question?",
+        "criteria": {
+          "true": "The question is declared as extract or interpret and could require information outside its declared inputs.",
+          "false": "The question is declared as predict, or the rule's subject matter is absent."
+        }
+      },
+      "sufficiency": {
+        "instructions": "Are the shown question materials sufficient to judge observability reliably?",
+        "criteria": {
+          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
+          "false": "Important material, such as policy text or representative inputs, is missing."
+        }
+      },
+      "violation": {
+        "instructions": "Do the shown instructions require observation beyond the declared inputs, such as outside knowledge, future events, hidden context, or information the model cannot see in the listed inputs?",
+        "criteria": {
+          "true": "Answering requires information outside the declared inputs.",
+          "false": "The declared inputs are sufficient in principle to answer as instructed."
+        }
+      }
+    },
+    {
+      "id": "QSM004",
+      "summary": "求める答えの形とboolean/categorical/ordinalの不一致疑い。",
+      "message": "求める答えの形と、宣言されたboolean/categorical/ordinalの構成が一致しない疑いがある。",
+      "appliesTo": {},
+      "applicability": {
+        "instructions": "Is the primitive-mismatch rule applicable to the shown question?",
+        "criteria": {
+          "true": "The shown question has both instructions and a declared answer shape that could disagree.",
+          "false": "The shown question has no declared answer shape to compare."
+        }
+      },
+      "sufficiency": {
+        "instructions": "Are the shown question materials sufficient to compare the instructions with the answer shape reliably?",
+        "criteria": {
+          "true": "The instructions, criteria, declared inputs, and output shape shown here are enough.",
+          "false": "Important material, such as policy text or representative inputs, is missing."
+        }
+      },
+      "violation": {
+        "instructions": "Does the declared answer shape (the output kind with its criteria, options, or levels) fail to represent the judgment that the instructions actually ask for?",
+        "criteria": {
+          "true": "The instructions ask for something the declared answer shape cannot express or record.",
+          "false": "The declared answer shape can express the judgment in the instructions."
+        }
+      }
+    },
+    {
+      "id": "QBE004",
+      "summary": "単独評価されるlevelが、前の段階など他levelの説明に依存する。",
+      "message": "単独で評価されるはずのlevelが、他levelの説明に依存している疑いがある。",
+      "appliesTo": {
+        "outputKinds": ["ordinal"]
+      },
+      "applicability": {
+        "instructions": "Is the context-dependent-level rule applicable to the shown question?",
+        "criteria": {
+          "true": "The shown question is an ordinal question with level descriptions.",
+          "false": "The shown question has no ordinal levels."
+        }
+      },
+      "sufficiency": {
+        "instructions": "Are the shown question materials sufficient to judge whether each level stands alone reliably?",
+        "criteria": {
+          "true": "The level descriptions and instructions shown here are enough.",
+          "false": "Important material, such as policy text or the full level text, is missing."
+        }
+      },
+      "violation": {
+        "instructions": "Does any level description depend on another level's text (for example the previous level, a level number, or the order of the list) instead of being understandable and judgeable on its own?",
+        "criteria": {
+          "true": "At least one level cannot be understood or judged without reading another level.",
+          "false": "Every level stands on its own."
+        }
+      }
+    }
+  ]
+}

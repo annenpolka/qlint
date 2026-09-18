@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "0.1",
+  "id": "ordinal_fixture",
+  "state": {
+    "id": "fixture_state",
+    "stages": [
+      {
+        "id": "start",
+        "after": []
+      },
+      {
+        "id": "complete",
+        "after": [
+          "start"
+        ]
+      }
+    ],
+    "fields": [
+      {
+        "id": "task",
+        "pointer": "/task",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "start",
+        "role": "evidence",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      },
+      {
+        "id": "outcome",
+        "pointer": "/outcome",
+        "valueType": "string",
+        "nullable": false,
+        "availableFrom": "complete",
+        "role": "target",
+        "derivedFrom": [],
+        "sensitivity": "internal"
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q_severity",
+      "revision": 1,
+      "mode": "interpret",
+      "instructions": "How severe is the reported issue?",
+      "inputs": [
+        "task"
+      ],
+      "policyRefs": [],
+      "applicability": "A task exists.",
+      "evidenceBoundary": "Only the task text is evidence.",
+      "missingInput": "abstain",
+      "insufficientEvidence": "abstain",
+      "output": {
+        "kind": "ordinal",
+        "axis": "severity",
+        "levels": [
+          {
+            "id": "cosmetic",
+            "description": "Cosmetic; no impact to functionality."
+          },
+          {
+            "id": "degraded",
+            "description": "Broken or degraded feature; a workaround exists."
+          },
+          {
+            "id": "blocking",
+            "description": "Blocking issue; no workaround exists."
+          }
+        ]
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "questionId": "q_severity",
+      "atStage": "start",
+      "profile": "feature",
+      "gates": [],
+      "onIndeterminate": "abstain"
+    }
+  ]
+}

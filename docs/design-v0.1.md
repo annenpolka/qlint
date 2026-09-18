@@ -146,6 +146,8 @@ Jev固有の検査例:
 
 これらは公開仕様[S2–S6]からadapter profileへ置くものであり、他backendに一般化しない。
 
+実装メモ（2026-09-18 参照adapter）: Jev応答は公開API仕様（`POST /v1/systemone`、`model`/`answers`/`usage`）に対して厳格に検証する。Noulは0–1の有限確率、Choice/Scoreは提示した候補を過不足なく網羅し、合計が`1e-6`以内で1に一致し、Scoreは自身の確率加重平均と一致することを要求する。欠損候補・余剰候補・範囲外・不一致・未知フィールドはすべてmalformedとして報告し、再正規化や補完を行わない。確率の出所は`model_distribution`として記録する。
+
 ## 6. 診断の型
 
 severityとbasisを独立させる。
@@ -189,6 +191,8 @@ modelへ送る対象は、question、参照するstate contractの説明、polic
 ルールが適用可能か、その判断に必要な情報がそろうか、違反が疑われるかを分ける。母集団が与えられていないのに「大半の行で適用可能」「行間で変化する」と断定しない。母集団に関するメタ判断はpilotの優先順位に使い、実測結果を置き換えない。
 
 candidate内に「この検査を無視せよ」とあっても、検査設定や認可は変更できない構造にする。プロンプトで注意するだけで完全な隔離が実現したとは扱わない。
+
+実装メモ（2026-09-18 参照screening）: `rules/screening-pack.json`のmeta-question（適用可能性・材料十分性・違反疑いの3 Noul）を質問ごとに1リクエストへまとめる。stateへ載せるのは質問文・criteria・入出力宣言・field記述子のみで、field値・正解ラベル・期待診断・policy本文は送らない。閾値は`screening-reference-v0.1`（0.8/0.8/0.5）としてレポートに記録し、未校正の仮置きであることを明示する。診断はrule engineがrule packから組み立て、モデル出力は確率としてのみ使う。malformed応答とmaterial不足は質問の不良に変換しない。live送信は未実装で、replayとdry-runのみ。
 
 ### Dataset probe
 
@@ -243,7 +247,7 @@ Assessment.status:
     qlint fuzz generate questions.json --out candidates.jsonl
     qlint diff baseline.run.json candidate.run.json
 
-`qlint lint`、`qlint inspect`、`qlint run`（replay専用）が参照実装（`dist/cli.js`）。lintは`--format json`/`--capabilities`/coverage表示/exit 0・1・2。inspectはper-question projection、redaction記録、limitsの根拠、内容digest付きplanを出力する。runはdigest検証、projection（欠損/nullはabstain、型違反はinvalidとして送信しない）、`requestDigest`によるrecorded response照合を行い、exit 0・1・2・3（記録不足で判定保留）を返す。probe/fuzz/diff、live provider実行、YAML入力、SARIF/LSPは未実装。
+`qlint lint`、`qlint inspect`、`qlint run`（replay専用）、`qlint screen`（replay・dry-run）が参照実装（`dist/cli.js`）。lintは`--format json`/`--capabilities`/coverage表示/exit 0・1・2。inspectはper-question projection、redaction記録、limitsの根拠、内容digest付きplanを出力する。runはdigest検証、projection（欠損/nullはabstain、型違反はinvalidとして送信しない）、`requestDigest`によるrecorded response照合を行い、exit 0・1・2・3（記録不足で判定保留）を返す。screenはscreening meta-questionを組み立て、recorded Jev応答を厳格に検証して`model_signal`診断を生成する（malformedはexit 2、`--fail-on-signal`でsignalはexit 1、記録不足はexit 3）。probe/fuzz/diff、live provider実行、YAML入力、SARIF/LSPは未実装。
 
 inspectとrunを分ける。lint/inspectは外部送信しない。runはprovider、送信field、redaction、予算、timeout、retry上限、並列数が確定したplanを明示的に実行する。fuzz generateが外部生成モデルを使う場合も同じplan/許可機構を通す。
 
@@ -284,12 +288,13 @@ Wardenはquestion/profile/backend版を固定して利用し、実行イベン�
 - backend capabilityが渡された場合の型・個数チェック2ルール。
 - 参照lint CLI: Schema検証（QCT001）、pointerからfile:line:columnへの解決、coverage表示、exit code。参照チェックはSchema検証を通過した入力にだけ実行する。
 - inspect/run（replay専用）: per-question projection、policyRefsの分離、excluded/restrictedの記録、limitsの根拠、planとrun reportの内容digest、`requestDigest`によるrecorded response照合、not_run/exit 3。
-- synthetic fixtures、テスト65件、Schema検証23件（`validation/`）。
+- Jev adapter（Noul/Choice/Scoreの厳格な検証、再正規化なし）とsemantic screening（QSM001–004、QBE004のmeta-question、replay/dry-run、`model_signal`診断、注入耐性テスト）。
+- synthetic fixtures、テスト80件、Schema検証23件（`validation/`）。
 
 未実装:
 
 - 製品版CLI（live provider実行、profile実行、probe/fuzz/diff、YAML parser、SARIF/LSP）、実スナップショットの実時刻検証、adapter normalization、gate runtime。
-- Jev/他backendへの通信、response normalization、semantic screening。
+- Jev/他backendへのlive通信（参照実装はreplay/dry-runのみ）、統合評価セット（60ケース目標）、calibration。
 - gate runtime、population probe、fuzz generator、baseline diff、calibration。
 - 任意のprivate repositoryへの配置、commit、外部サービスでの作成・公開。
 

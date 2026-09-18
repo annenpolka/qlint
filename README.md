@@ -2,7 +2,7 @@
 
 自然言語で定義された判定関数の **契約・観測可能性・backend適合性・挙動** を検査するための設計パッケージ。
 
-**状態: v0.1の設計 + オフライン参照実装。参照lint CLIと、digest固定のinspect/run（replay専用）は動くが、製品版qlintコマンドではない。** Jev API接続、semantic screening、probe、fuzzはまだない。名称は仮称。
+**状態: v0.1の設計 + オフライン参照実装。lint / inspect / run（replay）/ screen（replay・dry-run）は動くが、製品版qlintコマンドではない。** 実Jevへの送信、probe、fuzzはまだない。名称は仮称。
 
 ## 読む場所
 
@@ -16,6 +16,7 @@
 | `src/lint-suite.ts` / `src/cli.ts` | 参照CLI（lint/inspect/run）の検査順序と入出力 |
 | `src/locate.ts` | JSON Pointer → 元ファイルの行・列の解決 |
 | `src/plan.ts` / `src/projection.ts` / `src/replay.ts` | 実行計画、per-question projection、replay runner |
+| `src/adapter.ts` / `src/screening.ts` / `rules/screening-pack.json` | Jev応答の厳格な検証とsemantic screeningのmeta-question |
 | `schemas/execution-plan.schema.json` | runが受理するplanの構造制約（digest付き） |
 | `rules/catalog.json` | 33ルール。実装状態付き |
 | `examples/` | 合成fixture。実データでも実モデル測定でもない |
@@ -56,6 +57,21 @@ node dist/cli.js run plan.json --cases cases.jsonl --replay recorded.jsonl --for
 - 記録が無いrequestは `not_run` のまま残し、exit 3（判定保留）。invalidがあればexit 1。全部replayできればexit 0で、同じ入力の2回実行はバイト単位で一致する。
 - adapter normalization、gate runtime、live providerは実装していない。runはnetworkへ出ない（`requestsSent: 0`）。
 
+### screen（semantic screening）
+
+```sh
+node dist/cli.js screen examples/scope-monitor.suite.json --dry-run
+node dist/cli.js screen examples/scope-monitor.suite.json --replay recorded-signals.jsonl --format json
+```
+
+- `--dry-run`は送信予定のmeta-questionを表示するだけ。networkへ出ない。
+- 質問ごとに1リクエスト、適用可能なルール（QSM001–QSM004、QBE004）ごとに applicability / sufficiency / violation の3つのNoul質問をまとめる。
+- stateに載るのは質問文・criteria・入出力の宣言（field名/pointer/型）だけ。**fieldの値、正解ラベル、期待診断は送らない。** policyRefsの値も送らず、記述子だけを送る（未実装項目としてreportに明記）。
+- `src/adapter.ts`がJev応答（Noul/Choice/Score）を厳格に検証する。候補の欠落・余剰、確率の範囲外・非有限、合計が許容誤差（1e-6）を超える分布、scoreと確率分布の不一致、未知フィールドはすべてmalformedとして報告し、**黙って補正・再正規化しない**。
+- 閾値は`screening-reference-v0.1`（applicability>=0.8, sufficiency>=0.8, signal>=0.5）としてreportに記録される。**未校正の既定値**であり、検証データで決めるまでの仮置き。
+- 診断はrule engineがrule packから組み立てる`model_signal`（warning）。モデルの自由文は診断にならない。severityは`--fail-on-signal`を明示しない限りCIを落とさない。
+- exit code: malformed応答あり→2（backend/検査器の障害。質問の不良とはしない）、`--fail-on-signal`でsignalあり→1、記録不足→3（判定保留）、それ以外→0。
+
 ## オフラインの試験
 
 `dist/`は同梱済みなので、Node.jsから次をそのまま実行できる。
@@ -80,7 +96,7 @@ python3 -m pip install -r validation/requirements.txt
 python3 validation/check_contracts.py
 ```
 
-このbundleでの検証結果はテスト65件、Schema検証23件、型整合性検査、いずれも失敗0件。`validation/`に結果を収録。
+このbundleでの検証結果はテスト80件、Schema検証23件、型整合性検査、いずれも失敗0件。`validation/`に結果を収録。
 
 ## ライブラリ利用例
 
@@ -102,7 +118,7 @@ console.log(report.notExecuted);
 
 判定が役に立つかはFeature CompilerやWardenが決める。qlintは判定を実行してよいか、どの契約やテストで問題が見つかったか、何をまだ調べていないかを返す。
 
-`inspect`（replay用plan生成）と `run`（replay実行）は参照実装がある。`probe/fuzz/diff`とlive provider実行は設計書の提案であり、このbundleでは実行できない。
+`inspect`（replay用plan生成）、`run`（replay実行）、`screen`（replay・dry-run）は参照実装がある。`probe/fuzz/diff`とlive provider実行（実Jevへの送信）は設計書の提案であり、このbundleでは実行できない。
 
 ## ライセンス
 

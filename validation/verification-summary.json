@@ -1,9 +1,9 @@
 {
-  "status": "design_and_offline_reference_implementation_with_lint_inspect_run_replay",
+  "status": "design_and_offline_reference_implementation_with_lint_inspect_screen",
   "node": "v26.0.0",
   "typescript": "Version 5.8.3",
   "static_tests": {
-    "passed": 65,
+    "passed": 80,
     "failed": 0
   },
   "schema_tests": {
@@ -14,12 +14,13 @@
   "live_model_requests": 0,
   "rule_definitions": 33,
   "implemented_rule_definitions": 11,
-  "cli": "lint (static), inspect (digest-bound plan), run (replay only, network not used)",
+  "cli": "lint (static), inspect (digest-bound plan), run (replay only), screen (replay/dry-run)",
+  "adapter": "strict Noul/Choice/Score validation; no renormalization; malformed reported with issues",
+  "screening": "meta-questions per rule (QSM001-004, QBE004); uncalibrated reference thresholds recorded in the report",
   "not_implemented": [
-    "live provider execution",
+    "live provider execution (real Jev send)",
+    "screening evaluation set (target 60 cases) and calibration",
     "profile runs",
-    "Jev adapter",
-    "semantic screening",
     "state snapshot runtime validation with real timestamps",
     "gate runtime",
     "probe",
