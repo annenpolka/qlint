@@ -27,13 +27,14 @@ export function validateCases(cases) {
     if (!condition) problems.push(message);
   };
 
-  check(cases.length === 60, `expected 60 cases, found ${cases.length}`);
+  check(cases.length === 80, `expected 80 cases, found ${cases.length}`);
   const defect = cases.filter(item => item.kind === "defect");
   const legitimate = cases.filter(item => item.kind === "legitimate");
-  check(defect.length === 40, `expected 40 defect cases, found ${defect.length}`);
-  check(legitimate.length === 20, `expected 20 legitimate cases, found ${legitimate.length}`);
+  check(defect.length === 55, `expected 55 defect cases, found ${defect.length}`);
+  check(legitimate.length === 25, `expected 25 legitimate cases, found ${legitimate.length}`);
   check(cases.filter(item => item.split === "tuning").length === 30, "expected 30 tuning cases");
   check(cases.filter(item => item.split === "eval").length === 30, "expected 30 eval cases");
+  check(cases.filter(item => item.split === "eval2").length === 20, "expected 20 eval2 cases");
 
   const ids = new Set();
   for (const item of cases) {
@@ -41,7 +42,7 @@ export function validateCases(cases) {
     check(!ids.has(item.caseId), `duplicate caseId ${item.caseId}`);
     ids.add(item.caseId);
     check(["ja", "en"].includes(item.language), `${item.caseId}: language must be ja or en`);
-    check(["tuning", "eval"].includes(item.split), `${item.caseId}: split must be tuning or eval`);
+    check(["tuning", "eval", "eval2"].includes(item.split), `${item.caseId}: split must be tuning, eval, or eval2`);
     check(["QSM001", "QSM002", "QSM003", "QSM004", "QBE004"].includes(item.family), `${item.caseId}: unknown family ${item.family}`);
     check(typeof item.groupId === "string" && item.groupId !== "", `${item.caseId}: groupId is required`);
 
@@ -82,6 +83,6 @@ if (isMain) {
     for (const problem of problems) console.error(`case validation: ${problem}`);
     process.exitCode = 1;
   } else {
-    console.log("evaluation corpus: 60 cases valid (40 defect / 20 legitimate, 30 tuning / 30 eval)");
+    console.log("evaluation corpus: 80 cases valid (55 defect / 25 legitimate; 30 tuning / 30 eval / 20 eval2)");
   }
 }

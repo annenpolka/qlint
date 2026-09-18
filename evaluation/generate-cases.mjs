@@ -7,4 +7,4 @@ import { corpus, corpusSummary } from "./case-definitions.mjs";
 
 const lines = corpus.map(item => JSON.stringify(item));
 writeFileSync(new URL("cases.jsonl", import.meta.url), lines.join("\n") + "\n");
-console.log(`wrote evaluation/cases.jsonl (${corpusSummary.total} cases: ${corpusSummary.defect} defect, ${corpusSummary.legitimate} legitimate; ${corpusSummary.tuning} tuning, ${corpusSummary.eval} eval)`);
+console.log(`wrote evaluation/cases.jsonl (${corpusSummary.total} cases: ${corpusSummary.defect} defect, ${corpusSummary.legitimate} legitimate; ${corpusSummary.tuning} tuning, ${corpusSummary.eval} eval, ${corpusSummary.eval2} eval2)`);

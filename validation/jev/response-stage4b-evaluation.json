@@ -1,0 +1,1 @@
+{"model":"jev-1.13.0","answers":{"eval2_distinct_split":{"type":"noul","noul":0.97},"eval2_labels_structured":{"type":"noul","noul":0.83},"rule_set_digest_recorded":{"type":"noul","noul":0.95},"expected_rule_applicability_checked":{"type":"noul","noul":0.97},"sufficiency_split_metrics_shown":{"type":"noul","noul":0.75}},"usage":{"input_tokens":21092,"output_tokens":111}}

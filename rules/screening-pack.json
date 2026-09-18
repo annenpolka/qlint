@@ -11,8 +11,8 @@
       "applicability": {
         "instructions": "Is the compound-judgment rule relevant to the shown question?",
         "criteria": {
-          "true": "The instructions ask for a single answer that could cover more than one concept.",
-          "false": "The instructions clearly ask about one concept only."
+          "true": "The instructions require a single answer that may represent more than one judgment.",
+          "false": "The instructions clearly concern one judgment only."
         }
       },
       "sufficiency": {
@@ -23,10 +23,10 @@
         }
       },
       "violation": {
-        "instructions": "Do the shown instructions combine two or more concepts that can vary independently into a single answer, without stating how the concepts should compose?",
+        "instructions": "Do the shown instructions require a single answer to represent more than one judgment - for example correct and easy to read, or minimal and complete - without stating how those judgments combine?",
         "criteria": {
-          "true": "One answer is required for independently varying concepts and no intended composition is stated.",
-          "false": "The question judges a single concept, or it states how multiple concepts compose (for example an explicit AND condition)."
+          "true": "Two or more judgments are combined into one answer and the criteria do not say whether all must hold, any may hold, or how to trade them off.",
+          "false": "The question concerns one judgment, or the criteria state the composition."
         }
       }
     },
@@ -36,10 +36,10 @@
       "message": "判定境界または否定側の意味が不足している疑いがある。",
       "appliesTo": {},
       "applicability": {
-        "instructions": "Do the instructions or the criteria rely on a qualitative judgment term, for example: appropriate, sufficient, high quality, reasonable, well considered?",
+        "instructions": "Does the answer to the shown question depend on how a qualitative term is read - for example appropriate, sufficient, high quality, reasonable, clear, understandable?",
         "criteria": {
-          "true": "At least one qualitative judgment term is used.",
-          "false": "The instructions use only concrete, checkable conditions."
+          "true": "At least one deciding term is qualitative and is not replaced by a concrete condition in the instructions.",
+          "false": "The answer depends only on concrete, checkable conditions."
         }
       },
       "sufficiency": {
@@ -50,10 +50,10 @@
         }
       },
       "violation": {
-        "instructions": "Is at least one qualitative judgment term left undefined everywhere in the shown specification, so that two reasonable readers could place a concrete input on different sides?",
+        "instructions": "Do the shown criteria leave a deciding term undefined, so that two reasonable readers could classify at least one concrete input differently?",
         "criteria": {
-          "true": "A qualitative term is used but the shown criteria never define it.",
-          "false": "Every qualitative term is defined by the criteria or replaced by concrete conditions."
+          "true": "At least one term that can change the answer has no threshold, no enumeration, and no definition anywhere in the shown criteria.",
+          "false": "Every term that can change the answer is defined by a threshold, an enumeration, or explicit criteria."
         }
       }
     },

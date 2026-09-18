@@ -2,541 +2,541 @@ TAP version 13
 # Subtest: a valid Noul answer parses to a model distribution
 ok 1 - a valid Noul answer parses to a model distribution
   ---
-  duration_ms: 1.279625
+  duration_ms: 1.297834
   type: 'test'
   ...
 # Subtest: Noul rejects out-of-range, non-finite, mistyped, and extended answers
 ok 2 - Noul rejects out-of-range, non-finite, mistyped, and extended answers
   ---
-  duration_ms: 0.094833
+  duration_ms: 0.098417
   type: 'test'
   ...
 # Subtest: a valid Choice answer requires every offered option and a normalized sum
 ok 3 - a valid Choice answer requires every offered option and a normalized sum
   ---
-  duration_ms: 0.220541
+  duration_ms: 0.232125
   type: 'test'
   ...
 # Subtest: a valid Score answer must match its own probability-weighted mean
 ok 4 - a valid Score answer must match its own probability-weighted mean
   ---
-  duration_ms: 0.183125
+  duration_ms: 0.18275
   type: 'test'
   ...
 # Subtest: the response envelope must cover exactly the asked questions
 ok 5 - the response envelope must cover exactly the asked questions
   ---
-  duration_ms: 0.12425
+  duration_ms: 0.129458
   type: 'test'
   ...
 # Subtest: a clean suite exits 0 and the text report discloses what did not run
 ok 6 - a clean suite exits 0 and the text report discloses what did not run
   ---
-  duration_ms: 115.367625
+  duration_ms: 107.253167
   type: 'test'
   ...
 # Subtest: --format json emits the full coverage map
 ok 7 - --format json emits the full coverage map
   ---
-  duration_ms: 109.200333
+  duration_ms: 102.272959
   type: 'test'
   ...
 # Subtest: a reference violation exits 1 and points at the offending line
 ok 8 - a reference violation exits 1 and points at the offending line
   ---
-  duration_ms: 107.946625
+  duration_ms: 103.029917
   type: 'test'
   ...
 # Subtest: a schema violation exits 1 and skips cross-reference checks
 ok 9 - a schema violation exits 1 and skips cross-reference checks
   ---
-  duration_ms: 119.215833
+  duration_ms: 104.353041
   type: 'test'
   ...
 # Subtest: malformed JSON exits 1 with a located diagnostic
 ok 10 - malformed JSON exits 1 with a located diagnostic
   ---
-  duration_ms: 106.793291
+  duration_ms: 100.883792
   type: 'test'
   ...
 # Subtest: I/O and usage failures exit 2
 ok 11 - I/O and usage failures exit 2
   ---
-  duration_ms: 215.637792
+  duration_ms: 206.923458
   type: 'test'
   ...
 # Subtest: --help and --version exit 0
 ok 12 - --help and --version exit 0
   ---
-  duration_ms: 148.717875
+  duration_ms: 141.278125
   type: 'test'
   ...
 # Subtest: capability checks change the outcome only when a profile is supplied
 ok 13 - capability checks change the outcome only when a profile is supplied
   ---
-  duration_ms: 215.656667
+  duration_ms: 209.525291
   type: 'test'
   ...
 # Subtest: malformed capability profiles are a tool-configuration failure (exit 2)
 ok 14 - malformed capability profiles are a tool-configuration failure (exit 2)
   ---
-  duration_ms: 71.907833
+  duration_ms: 68.813375
   type: 'test'
   ...
 # Subtest: lint does not modify the input file
 ok 15 - lint does not modify the input file
   ---
-  duration_ms: 106.584917
+  duration_ms: 104.397916
   type: 'test'
   ...
 # Subtest: canonical JSON sorts object keys and keeps array order
 ok 16 - canonical JSON sorts object keys and keeps array order
   ---
-  duration_ms: 0.886041
+  duration_ms: 0.945417
   type: 'test'
   ...
 # Subtest: digests are independent of key order
 ok 17 - digests are independent of key order
   ---
-  duration_ms: 0.073125
+  duration_ms: 0.074917
   type: 'test'
   ...
 # Subtest: non-JSON values are rejected rather than silently dropped
 ok 18 - non-JSON values are rejected rather than silently dropped
   ---
-  duration_ms: 0.197333
+  duration_ms: 0.882417
   type: 'test'
   ...
 # Subtest: the evaluation corpus is complete, split, and lint-clean
 ok 19 - the evaluation corpus is complete, split, and lint-clean
   ---
-  duration_ms: 9.293875
+  duration_ms: 10.397625
   type: 'test'
   ...
-# Subtest: paraphrase groups bundle more than one case
-ok 20 - paraphrase groups bundle more than one case
+# Subtest: base-corpus paraphrase groups bundle more than one case
+ok 20 - base-corpus paraphrase groups bundle more than one case
   ---
-  duration_ms: 0.572208
+  duration_ms: 0.741
   type: 'test'
   ...
 # Subtest: inspect displays request count, fields, provider, redaction, and limit rationale
 ok 21 - inspect displays request count, fields, provider, redaction, and limit rationale
   ---
-  duration_ms: 112.127542
+  duration_ms: 107.799959
   type: 'test'
   ...
 # Subtest: the generated plan satisfies the ExecutionPlan schema and verifies its digest
 ok 22 - the generated plan satisfies the ExecutionPlan schema and verifies its digest
   ---
-  duration_ms: 111.983042
+  duration_ms: 106.429416
   type: 'test'
   ...
 # Subtest: inspect refuses a suite whose lint has errors (target leak)
 ok 23 - inspect refuses a suite whose lint has errors (target leak)
   ---
-  duration_ms: 108.652417
+  duration_ms: 107.181042
   type: 'test'
   ...
 # Subtest: restricted fields require explicit approval
 ok 24 - restricted fields require explicit approval
   ---
-  duration_ms: 228.375167
+  duration_ms: 209.085334
   type: 'test'
   ...
 # Subtest: run detects plan edits through the digest
 ok 25 - run detects plan edits through the digest
   ---
-  duration_ms: 215.873375
+  duration_ms: 205.1845
   type: 'test'
   ...
 # Subtest: replay reproduces recorded responses without network and exits 3 without them
 ok 26 - replay reproduces recorded responses without network and exits 3 without them
   ---
-  duration_ms: 431.06775
+  duration_ms: 412.87975
   type: 'test'
   ...
 # Subtest: live providers are rejected with a clear message
 ok 27 - live providers are rejected with a clear message
   ---
-  duration_ms: 72.4105
+  duration_ms: 69.171125
   type: 'test'
   ...
 # Subtest: a valid fixture passes every executed rule and discloses what was not run
 ok 28 - a valid fixture passes every executed rule and discloses what was not run
   ---
-  duration_ms: 3.404
+  duration_ms: 3.560292
   type: 'test'
   ...
 # Subtest: a reference violation points at the exact input array item
 ok 29 - a reference violation points at the exact input array item
   ---
-  duration_ms: 0.900541
+  duration_ms: 0.948959
   type: 'test'
   ...
 # Subtest: schema violations are reported and cross-reference checks are marked not_run
 ok 30 - schema violations are reported and cross-reference checks are marked not_run
   ---
-  duration_ms: 0.912875
+  duration_ms: 0.9025
   type: 'test'
   ...
 # Subtest: malformed JSON yields a located QCT001 diagnostic
 ok 31 - malformed JSON yields a located QCT001 diagnostic
   ---
-  duration_ms: 0.306459
+  duration_ms: 0.3015
   type: 'test'
   ...
 # Subtest: capability checks run only when a capability profile is provided
 ok 32 - capability checks run only when a capability profile is provided
   ---
-  duration_ms: 0.457959
+  duration_ms: 0.489209
   type: 'test'
   ...
 # Subtest: every emitted diagnostic satisfies the Diagnostic schema
 ok 33 - every emitted diagnostic satisfies the Diagnostic schema
   ---
-  duration_ms: 0.485875
+  duration_ms: 0.499667
   type: 'test'
   ...
 # Subtest: object members and array items resolve to exact positions
 ok 34 - object members and array items resolve to exact positions
   ---
-  duration_ms: 1.840208
+  duration_ms: 1.486041
   type: 'test'
   ...
 # Subtest: escaped key segments use JSON Pointer escaping
 ok 35 - escaped key segments use JSON Pointer escaping
   ---
-  duration_ms: 0.096042
+  duration_ms: 0.097709
   type: 'test'
   ...
 # Subtest: nearest falls back to the containing value, then to the root
 ok 36 - nearest falls back to the containing value, then to the root
   ---
-  duration_ms: 0.11025
+  duration_ms: 0.095666
   type: 'test'
   ...
 # Subtest: the scanner reports where malformed text stops
 ok 37 - the scanner reports where malformed text stops
   ---
-  duration_ms: 0.200375
+  duration_ms: 0.186458
   type: 'test'
   ...
 # Subtest: positionAtOffset counts from one and clamps to the source
 ok 38 - positionAtOffset counts from one and clamps to the source
   ---
-  duration_ms: 0.078667
+  duration_ms: 0.071042
   type: 'test'
   ...
 # Subtest: each question projects only its own inputs, never the union
 ok 39 - each question projects only its own inputs, never the union
   ---
-  duration_ms: 3.544209
+  duration_ms: 1.345333
   type: 'test'
   ...
 # Subtest: policy references travel separately from evidence inputs
 ok 40 - policy references travel separately from evidence inputs
   ---
-  duration_ms: 0.419583
+  duration_ms: 0.280458
   type: 'test'
   ...
 # Subtest: missing inputs abstain and nulls abstain unless declared nullable
 ok 41 - missing inputs abstain and nulls abstain unless declared nullable
   ---
-  duration_ms: 0.123166
+  duration_ms: 0.103125
   type: 'test'
   ...
 # Subtest: type violations stop the request instead of being smoothed over
 ok 42 - type violations stop the request instead of being smoothed over
   ---
-  duration_ms: 0.126625
+  duration_ms: 0.054834
   type: 'test'
   ...
 # Subtest: a hand-made plan that projects a target is rejected at projection time
 ok 43 - a hand-made plan that projects a target is rejected at projection time
   ---
-  duration_ms: 0.346875
+  duration_ms: 0.055625
   type: 'test'
   ...
 # Subtest: pointer resolution handles escaping, arrays, and missing paths
 ok 44 - pointer resolution handles escaping, arrays, and missing paths
   ---
-  duration_ms: 0.157167
+  duration_ms: 0.325917
   type: 'test'
   ...
 # Subtest: replay leaves uncovered requests not_run and records payloads
 ok 45 - replay leaves uncovered requests not_run and records payloads
   ---
-  duration_ms: 0.341417
+  duration_ms: 0.247334
   type: 'test'
   ...
 # Subtest: replay refuses duplicate recordings for one request digest
 ok 46 - replay refuses duplicate recordings for one request digest
   ---
-  duration_ms: 0.281
+  duration_ms: 0.247416
   type: 'test'
   ...
 # Subtest: screen --dry-run shows the requests without sending anything
 ok 47 - screen --dry-run shows the requests without sending anything
   ---
-  duration_ms: 223.332959
+  duration_ms: 216.078042
   type: 'test'
   ...
 # Subtest: screen replay produces model_signal diagnostics deterministically
 ok 48 - screen replay produces model_signal diagnostics deterministically
   ---
-  duration_ms: 337.324459
+  duration_ms: 317.373417
   type: 'test'
   ...
 # Subtest: screen --fail-on-signal turns signals into exit 1
 ok 49 - screen --fail-on-signal turns signals into exit 1
   ---
-  duration_ms: 221.02275
+  duration_ms: 211.203584
   type: 'test'
   ...
 # Subtest: screen exits 3 without recordings and 2 on malformed responses
 ok 50 - screen exits 3 without recordings and 2 on malformed responses
   ---
-  duration_ms: 330.04125
+  duration_ms: 317.72575
   type: 'test'
   ...
 # Subtest: live screening sends only the built requests and records usage
 ok 51 - live screening sends only the built requests and records usage
   ---
-  duration_ms: 3.505042
+  duration_ms: 2.442416
   type: 'test'
   ...
 # Subtest: a budget limits sends and leaves the rest not_run
 ok 52 - a budget limits sends and leaves the rest not_run
   ---
-  duration_ms: 0.533917
+  duration_ms: 1.029166
   type: 'test'
   ...
 # Subtest: backend failures become backend_error observations, not signals
 ok 53 - backend failures become backend_error observations, not signals
   ---
-  duration_ms: 2.247
+  duration_ms: 0.242042
   type: 'test'
   ...
 # Subtest: a model override changes the request digest bound to recordings
 ok 54 - a model override changes the request digest bound to recordings
   ---
-  duration_ms: 0.341208
+  duration_ms: 0.274834
   type: 'test'
   ...
 # Subtest: one request per question, with rules filtered by declared shape
 ok 55 - one request per question, with rules filtered by declared shape
   ---
-  duration_ms: 2.452583
+  duration_ms: 1.761333
   type: 'test'
   ...
 # Subtest: sent state contains question text and descriptors only
 ok 56 - sent state contains question text and descriptors only
   ---
-  duration_ms: 0.583417
+  duration_ms: 0.253625
   type: 'test'
   ...
 # Subtest: request digests are content-bound and stable
 ok 57 - request digests are content-bound and stable
   ---
-  duration_ms: 0.603417
+  duration_ms: 0.641291
   type: 'test'
   ...
 # Subtest: threshold classification separates applicability, sufficiency, and violation
 ok 58 - threshold classification separates applicability, sufficiency, and violation
   ---
-  duration_ms: 1.340625
+  duration_ms: 1.1855
   type: 'test'
   ...
 # Subtest: malformed and injected responses never become diagnostics or change severity
 ok 59 - malformed and injected responses never become diagnostics or change severity
   ---
-  duration_ms: 0.419584
+  duration_ms: 0.435041
   type: 'test'
   ...
 # Subtest: missing recordings stay not_run and duplicates are refused
 ok 60 - missing recordings stay not_run and duplicates are refused
   ---
-  duration_ms: 0.4605
+  duration_ms: 0.452084
   type: 'test'
   ...
 # Subtest: valid fixture has no cross-reference violations; semantics explicitly not checked
 ok 61 - valid fixture has no cross-reference violations; semantics explicitly not checked
   ---
-  duration_ms: 1.818917
+  duration_ms: 3.126667
   type: 'test'
   ...
 # Subtest: unknown input reference
 ok 62 - unknown input reference
   ---
-  duration_ms: 0.607333
+  duration_ms: 0.255042
   type: 'test'
   ...
 # Subtest: stage cycle
 ok 63 - stage cycle
   ---
-  duration_ms: 0.162334
+  duration_ms: 0.134
   type: 'test'
   ...
 # Subtest: future input is not available during execution
 ok 64 - future input is not available during execution
   ---
-  duration_ms: 1.84875
+  duration_ms: 0.137917
   type: 'test'
   ...
 # Subtest: direct evaluation label leakage
 ok 65 - direct evaluation label leakage
   ---
-  duration_ms: 0.190542
+  duration_ms: 0.127916
   type: 'test'
   ...
 # Subtest: derived label leakage
 ok 66 - derived label leakage
   ---
-  duration_ms: 0.161209
+  duration_ms: 0.135291
   type: 'test'
   ...
 # Subtest: lineage availability cannot be erased by an earlier declared timestamp
 ok 67 - lineage availability cannot be erased by an earlier declared timestamp
   ---
-  duration_ms: 0.127292
+  duration_ms: 0.1365
   type: 'test'
   ...
 # Subtest: non-boolean gate
 ok 68 - non-boolean gate
   ---
-  duration_ms: 0.115167
+  duration_ms: 0.121
   type: 'test'
   ...
 # Subtest: gate thresholds overlap
 ok 69 - gate thresholds overlap
   ---
-  duration_ms: 0.503583
+  duration_ms: 0.101959
   type: 'test'
   ...
 # Subtest: duplicate category IDs
 ok 70 - duplicate category IDs
   ---
-  duration_ms: 0.420209
+  duration_ms: 0.133667
   type: 'test'
   ...
 # Subtest: fallback must identify a declared category
 ok 71 - fallback must identify a declared category
   ---
-  duration_ms: 0.330042
+  duration_ms: 0.098083
   type: 'test'
   ...
 # Subtest: duplicate question ID
 ok 72 - duplicate question ID
   ---
-  duration_ms: 0.469083
+  duration_ms: 0.094167
   type: 'test'
   ...
 # Subtest: a question requires a binding
 ok 73 - a question requires a binding
   ---
-  duration_ms: 0.18975
+  duration_ms: 0.09075
   type: 'test'
   ...
 # Subtest: policy references require policy role
 ok 74 - policy references require policy role
   ---
-  duration_ms: 0.099041
+  duration_ms: 0.078459
   type: 'test'
   ...
 # Subtest: parent selector containing a declared target is unsafe
 ok 75 - parent selector containing a declared target is unsafe
   ---
-  duration_ms: 0.079166
+  duration_ms: 0.075291
   type: 'test'
   ...
 # Subtest: child selector inside a declared target is unsafe
 ok 76 - child selector inside a declared target is unsafe
   ---
-  duration_ms: 0.683041
+  duration_ms: 1.325333
   type: 'test'
   ...
 # Subtest: gate dependency cycle
 ok 77 - gate dependency cycle
   ---
-  duration_ms: 0.087708
+  duration_ms: 0.093459
   type: 'test'
   ...
 # Subtest: field lineage cycle
 ok 78 - field lineage cycle
   ---
-  duration_ms: 0.070625
+  duration_ms: 0.084042
   type: 'test'
   ...
 # Subtest: ambiguous prose is NOT falsely certified or rejected by a static checker
 ok 79 - ambiguous prose is NOT falsely certified or rejected by a static checker
   ---
-  duration_ms: 0.181667
+  duration_ms: 0.158792
   type: 'test'
   ...
 # Subtest: backend capability limits are checked separately
 ok 80 - backend capability limits are checked separately
   ---
-  duration_ms: 0.075416
+  duration_ms: 0.067542
   type: 'test'
   ...
 # Subtest: an unsupported output kind is a capability error
 ok 81 - an unsupported output kind is a capability error
   ---
-  duration_ms: 0.06425
+  duration_ms: 0.063708
   type: 'test'
   ...
 # Subtest: parent object selector containing a declared field from a later stage is flagged
 ok 82 - parent object selector containing a declared field from a later stage is flagged
   ---
-  duration_ms: 0.154875
+  duration_ms: 0.070708
   type: 'test'
   ...
 # Subtest: parent object selector is not flagged when its declared children are available
 ok 83 - parent object selector is not flagged when its declared children are available
   ---
-  duration_ms: 0.329583
+  duration_ms: 0.060209
   type: 'test'
   ...
 # Subtest: unregistered nested data is outside the static guarantee
 ok 84 - unregistered nested data is outside the static guarantee
   ---
-  duration_ms: 0.205125
+  duration_ms: 0.045166
   type: 'test'
   ...
 # Subtest: separate prerequisite branches are not implicitly ordered
 ok 85 - separate prerequisite branches are not implicitly ordered
   ---
-  duration_ms: 0.14225
+  duration_ms: 0.060666
   type: 'test'
   ...
 # Subtest: input suite remains unmodified
 ok 86 - input suite remains unmodified
   ---
-  duration_ms: 0.091792
+  duration_ms: 0.071667
   type: 'test'
   ...
 # Subtest: success returns the parsed response and sends the bearer header
 ok 87 - success returns the parsed response and sends the bearer header
   ---
-  duration_ms: 1.064958
+  duration_ms: 2.004958
   type: 'test'
   ...
 # Subtest: HTTP errors are classified without leaking the key
 ok 88 - HTTP errors are classified without leaking the key
   ---
-  duration_ms: 0.154042
+  duration_ms: 0.184583
   type: 'test'
   ...
 # Subtest: aborts become timeout failures and network errors are classified
 ok 89 - aborts become timeout failures and network errors are classified
   ---
-  duration_ms: 1.506
+  duration_ms: 0.202625
   type: 'test'
   ...
 # Subtest: a non-object response body is an HTTP failure
 ok 90 - a non-object response body is an HTTP failure
   ---
-  duration_ms: 0.204875
+  duration_ms: 0.118291
   type: 'test'
   ...
 1..90
@@ -547,4 +547,4 @@ ok 90 - a non-object response body is an HTTP failure
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 1419.418208
+# duration_ms 1338.331708

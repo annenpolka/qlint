@@ -220,11 +220,12 @@ function assembleReport(input: {
   version: string;
   policy: ScreeningPolicy;
   provider: ScreeningReport["provider"];
+  ruleSetDigest: string;
   model?: string;
   usage?: ScreeningUsage;
   extraNotExecuted?: string[];
 }): ScreeningReport {
-  const { suite, requests, observations, diagnostics, version, policy, provider, model, usage, extraNotExecuted } = input;
+  const { suite, requests, observations, diagnostics, version, policy, provider, ruleSetDigest, model, usage, extraNotExecuted } = input;
   const count = (status: ScreeningObservation["status"]): number => observations.filter(observation => observation.status === status).length;
   const withoutDigest = {
     schemaVersion: "0.1" as const,
@@ -234,6 +235,7 @@ function assembleReport(input: {
     ...(model === undefined ? {} : { model }),
     ...(usage === undefined ? {} : { usage }),
     suite: { id: suite.id, digest: digestOf(suite) },
+    ruleSetDigest,
     policy,
     observations,
     diagnostics,
@@ -293,6 +295,7 @@ export function screenFromRecordings(
   }
   return assembleReport({
     suite, requests, observations, diagnostics, version, policy, provider: "replay",
+    ruleSetDigest: digestOf(pack.rules),
     extraNotExecuted: ["provider execution (replay only; no network)"],
   });
 }
@@ -384,6 +387,7 @@ export async function screenLive(
     version,
     policy,
     provider: "typesafe",
+    ruleSetDigest: digestOf(pack.rules),
     model,
     usage: { requests: requestsSent, inputTokens, outputTokens, latencyMs },
     extraNotExecuted: [

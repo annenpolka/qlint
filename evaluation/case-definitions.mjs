@@ -293,6 +293,79 @@ legit("QBE004", "self_contained_confidence", "en", "eval",
   { instructions: "Rate the strength of the shown evidence.", output: ORD("evidence_strength", ["The evidence supports a confident judgment", "Part of the judgment relies on inference", "The inputs do not support a judgment"]) },
   "Levels stand alone.");
 
+// --- eval2: fresh held-out batch, authored before the rule revision ----------
+// 20 cases (15 defect, 5 legitimate), split "eval2". These are observed once
+// after the rule pack is frozen for this iteration; they were authored before
+// the tuning results of that revision were known.
+
+defect("QSM001", "eval2_accuracy_tone", "ja", "eval2",
+  { instructions: "この回答は正確で、かつ丁寧か。", output: BOOL("正確かつ丁寧。", "それ以外。") },
+  "正確さと丁寧さは独立に変わり、合成規則がない。");
+defect("QSM001", "eval2_minimal_complete", "en", "eval2",
+  { instructions: "Is the patch minimal and complete?", output: BOOL("Minimal and complete.", "Otherwise.") },
+  "Minimality and completeness are independent dimensions.");
+defect("QSM001", "eval2_feasible_worthwhile", "ja", "eval2",
+  { instructions: "この提案は実現可能で、費用対効果も高いか。", output: BOOL("実現可能かつ費用対効果が高い。", "それ以外。") },
+  "実現可能性と費用対効果は独立に変わり得る。");
+legit("QSM001", "eval2_explicit_both", "ja", "eval2",
+  { instructions: "この差分に、依頼で明示された変更と無関係な変更の両方が含まれるか。true は両方を含む場合のみ。", output: BOOL("両方を含む。", "少なくとも一方を含まない。") },
+  "両方という合成規則が明示されている。");
+
+defect("QSM002", "eval2_understandable", "ja", "eval2",
+  { instructions: "この説明は分かりやすいか。", output: BOOL("分かりやすい。", "分かりにくい。") },
+  "「分かりやすい」の基準が定義されていない。");
+defect("QSM002", "eval2_robust_enough", "en", "eval2",
+  { instructions: "Is the error handling robust enough?", output: BOOL("Robust enough.", "Not robust enough.") },
+  "\u201cRobust enough\u201d has no stated boundary.");
+defect("QSM002", "eval2_reliable_tests", "ja", "eval2",
+  { instructions: "このテストは信頼できるか。", output: BOOL("信頼できる。", "信頼できない。") },
+  "「信頼できる」の水準が未定義。");
+legit("QSM002", "eval2_exact_count", "ja", "eval2",
+  { instructions: "true は、依頼文に記載された変更対象ファイルが1つだけの場合。false は0個または2個以上の場合。", output: BOOL("変更対象ファイルが1つ。", "0個または2個以上。") },
+  "境界が数え方まで明示されている。");
+
+defect("QSM003", "eval2_next_release", "ja", "eval2",
+  { instructions: "この変更は、次のリリースで問題を起こすか。", output: BOOL("問題を起こす。", "起こさない。") },
+  "interpret のまま将来のリリース挙動を求めている。");
+defect("QSM003", "eval2_undocumented", "en", "eval2",
+  { instructions: "Did the agent follow the team's undocumented conventions?", output: BOOL("It followed them.", "It did not."), evidenceBoundary: "The conventions are not provided. Use only the shown inputs." },
+  "Required conventions are not among the declared inputs.");
+defect("QSM003", "eval2_rejected_history", "ja", "eval2",
+  { instructions: "この対応は、以前に却下された提案と同じ問題を含むか。", output: BOOL("同じ問題を含む。", "含まない。") },
+  "却下された提案の記録が入力に存在しない。");
+legit("QSM003", "eval2_predict_declared", "ja", "eval2",
+  { mode: "predict", instructions: "この変更は、次のリリースで問題を起こすか。", output: BOOL("問題を起こす。", "起こさない。"), prediction: { targetRef: "outcome", horizon: "次のリリース時" } },
+  "predict として宣言され、対象も契約に登録されている。");
+
+defect("QSM004", "eval2_kind_boolean", "ja", "eval2",
+  { instructions: "差分はどの種類の変更を含むか。", output: BOOL("種類がある。", "種類がない。") },
+  "種類の選択を boolean で表そうとしている。");
+defect("QSM004", "eval2_count_boolean", "en", "eval2",
+  { instructions: "How many files does the change touch?", output: BOOL("It touches files.", "It touches none.") },
+  "数量を boolean では記録できない。");
+defect("QSM004", "eval2_unordered_ordinal", "ja", "eval2",
+  { instructions: "変更の種類を判定する。", output: ORD("kind", ["バグ修正", "機能追加", "リファクタリング"]) },
+  "順序のない種類を ordinal として宣言している。");
+legit("QSM004", "eval2_boolean_scope", "ja", "eval2",
+  { instructions: "差分に、依頼で許可されていない変更が含まれるか。", output: BOOL("許可されていない変更が含まれる。", "許可された範囲に収まっている。") },
+  "yes/no の判断に boolean が合っている。");
+
+defect("QBE004", "eval2_relative_ja", "ja", "eval2",
+  { instructions: "この変更の影響を段階評価する。", output: ORD("impact", ["影響なし", "軽微（上の段階より大きい）", "重大（さらに大きい）"]) },
+  "レベルが相対的な大小で記述されている。",
+  { evidencePointer: "/questions/0/output" });
+defect("QBE004", "eval2_previous_en", "en", "eval2",
+  { instructions: "Rate the impact of this change.", output: ORD("impact", ["No change", "More than the previous level", "The most"]) },
+  "Levels rely on the previous level for meaning.",
+  { evidencePointer: "/questions/0/output" });
+defect("QBE004", "eval2_rank_relative", "ja", "eval2",
+  { instructions: "この変更をランク付けする。", output: ORD("rank", ["Aランク", "Bランク（Aより下）", "Cランク（Bより下）"]) },
+  "ランクの説明が他ランクとの比較でしか成立しない。",
+  { evidencePointer: "/questions/0/output" });
+legit("QBE004", "eval2_self_contained_status", "ja", "eval2",
+  { instructions: "この作業の状態を評価する。", output: ORD("status", ["未着手で作業は始まっていない", "作業中だが未完了", "完了して検証済み"]) },
+  "各レベルが単独で状況を記述している。");
+
 export const corpus = cases;
 export const corpusSummary = {
   total: cases.length,
@@ -300,6 +373,7 @@ export const corpusSummary = {
   legitimate: cases.filter(item => item.kind === "legitimate").length,
   tuning: cases.filter(item => item.split === "tuning").length,
   eval: cases.filter(item => item.split === "eval").length,
+  eval2: cases.filter(item => item.split === "eval2").length,
   languages: ["ja", "en"],
   families: ["QSM001", "QSM002", "QSM003", "QSM004", "QBE004"],
 };

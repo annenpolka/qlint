@@ -281,6 +281,8 @@ export interface ScreeningReport {
         id: Id;
         digest: string;
     };
+    /** Content digest of the rule pack that built the diagnostics. */
+    ruleSetDigest: string;
     policy: ScreeningPolicy;
     observations: ScreeningObservation[];
     /** model_signal diagnostics only; the rule engine builds them, never the model. */

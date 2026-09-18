@@ -84,23 +84,25 @@ TYPESAFE_API_KEY=... node dist/cli.js screen examples/scope-monitor.suite.json \
 - budget超過分は`not_run`として残る。HTTP 429/529・timeout・network障害は`backend_error`観測として記録し、質問の不良に変換しない（exit 2）。
 - `--record`で生応答をJSONL（mode 0600）に保存でき、`--replay`で同じ判定をnetworkなしで再現できる。
 
-## 評価セット（60ケース）
+## 評価セット（80ケース）
 
 `evaluation/`にscreening自体の評価データと計測器がある。
 
-- `case-definitions.mjs`が人間が書いた60ケース（実装済み5ルールfamily × 8欠陥 = 40件、明示AND・明確な境界・predict宣言・自己完結level・best_fit重なりなどの正当例20件）を定義する。30件がtuning、30件がeval。言い換え・日英を同じgroupIdに束ねる。
+- `case-definitions.mjs`が人間が書いた80ケースを定義する。ベース60（実装済み5ルールfamily × 8欠陥 = 40件 + 明示AND・明確な境界・predict宣言・自己完結levelなどの正当例20件、30 tuning / 30 eval）と、ルール改訂前に先書きしたheld-out 20（eval2、15欠陥 + 5正当例）。言い換え・日英を同じgroupIdに束ねる。
 - `validate-cases.mjs`は件数・分割・ID重複・lint違反・期待ルールの適用可否をオフラインで検査する。
-- `run-corpus.mjs`はlive（`TYPESAFE_API_KEY`必須、ケースごとに1リクエスト）または`--replay`で走り、rule別tp/fn/unknown/fp、正当例を止めた割合、根拠spanの一致率、usage、失敗数をtuning/eval別に出す。
+- `run-corpus.mjs`はlive（`TYPESAFE_API_KEY`必須、ケースごとに1リクエスト）または`--replay`で走り、rule別tp/fn/unknown/fp、正当例を止めた割合、根拠spanの一致率、usage、失敗数を分割別に出す。結果にはrule packの内容digest（`ruleSetDigest`）が入る。
 
-2026-09-18のlive測定（jev-latest、60リクエスト、84,862 input / 18,709 output tokens、失敗0）:
+改訂履歴（すべてtuning分割のみで判断）: baselineはsignal 0（sufficiency中央値0.16）→ meta-questionを仕様構成要素の存在確認へ → corpusのinputsバグ（「差分」参照なのにinputがtaskのみ）修正 → QSM002/QSM004の条件を具体化 → v6でQSM001の合成規則とQSM002の決定語の条件を明確化。
 
-| 指標 | overall | tuning | eval |
-|---|---|---|---|
-| 欠陥を検出 (hits/40) | 33 | 17 | 16 |
-| 正当例を止めた割合 | 35% | 30% | 40% |
-| 根拠span一致 | 76% | 76% | 75% |
+2026-09-18 v6 live測定（jev-latest、80リクエスト、116,390 input / 24,921 output tokens、失敗0、約25秒）:
 
-rule別: QBE004はtp 8/fp 0。QSM003はtp 8/fp 3、QSM004はtp 7/fn 1。**QSM001はtp 2/fn 6と再現率が低く、QSM002はfp 19と過剰発火**。改善はtuning分割で行い、eval分割は新しいケースを足すまでheld-outとして扱う。生応答は`evaluation/recorded-live.jsonl`にあり、`node evaluation/run-corpus.mjs --replay evaluation/recorded-live.jsonl`で同じ指標を再現できる（実行確認済み）。
+| 指標 | overall | tuning | eval | eval2（held-out・初観測） |
+|---|---|---|---|---|
+| 欠陥を検出 | 49/55 | 18/20 | 19/20 | 12/15 |
+| 正当例を止めた割合 | 24% | 20% | 30% | 20% |
+| 根拠span一致 | 84% | 78% | 79% | 100% |
+
+rule別（overall）: QBE004 tp11/fp0、QSM003 tp10/fn1/fp4、QSM004 tp9/fn2、QSM001 tp8/fn3、**QSM002 tp11/fp28と過剰発火が最大の課題**。生応答は`evaluation/recorded-live-v6.jsonl`にあり、`node evaluation/run-corpus.mjs --replay evaluation/recorded-live-v6.jsonl`で同じ指標を再現できる（実行確認済み）。
 
 ## オフラインの試験
 

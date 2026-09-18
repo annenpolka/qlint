@@ -32,8 +32,8 @@ const { values } = parseArgs({
   },
 });
 
-if (!["all", "tuning", "eval"].includes(values.split)) {
-  console.error("--split must be all, tuning, or eval");
+if (!["all", "tuning", "eval", "eval2"].includes(values.split)) {
+  console.error("--split must be all, tuning, eval, or eval2");
   process.exit(2);
 }
 
@@ -191,10 +191,12 @@ const run = async () => {
     overall: metric(detailed),
     tuning: metric(subset("tuning")),
     eval: metric(subset("eval")),
+    eval2: subset("eval2").length === 0 ? null : metric(subset("eval2")),
   };
   const result = {
     mode: values.live ? "live" : "replay",
     model: values.model ?? pack.model ?? "jev-latest",
+    ruleSetDigest: detailed[0]?.report.ruleSetDigest ?? null,
     policy: detailed[0]?.report.policy ?? null,
     metrics,
     usage,
@@ -223,6 +225,7 @@ const run = async () => {
   print("overall", metrics.overall);
   print("tuning", metrics.tuning);
   print("eval", metrics.eval);
+  if (metrics.eval2 !== null) print("eval2", metrics.eval2);
   console.log(`wrote ${values.out}`);
 };
 
